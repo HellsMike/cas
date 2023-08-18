@@ -11,7 +11,6 @@ conn = psycopg2.connect(
 
 # Creazione della tabella per la collezione
 create_collection_table_query = """
-DROP TABLE IF EXISTS (collections);
 CREATE TABLE collections (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255),
@@ -21,7 +20,6 @@ CREATE TABLE collections (
 
 # Creazione della tabella per le immagini
 create_images_table_query = """
-DROP TABLE IF EXISTS (images);
 CREATE TABLE images (
     id SERIAL PRIMARY KEY,
     url VARCHAR(255),
