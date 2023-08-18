@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from airports import Airport  # Import the Airport class from airports.py
+from esempi.airports import Airport  # Import the Airport class from airports.py
 
 # PostgreSQL connection parameters
 dbname = "Airports"  # Your database name
