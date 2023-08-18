@@ -2,11 +2,11 @@ import psycopg2
 
 # Connessione al database
 conn = psycopg2.connect(
-    dbname="nome_del_database",
-    user="nome_utente",
-    password="password",
-    host="host",
-    port="porta"
+    dbname="cas",
+    user="postgres",
+    password="docker",
+    host="localhost",
+    port="5432"
 )
 
 # Creazione della tabella per la collezione
