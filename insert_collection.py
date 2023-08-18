@@ -15,7 +15,7 @@ longitude = 11.231231
 
 # Query per l'inserimento di una nuova collection
 insert_collection = f"""
-INSERT INTO collections VALUES 
+INSERT INTO collections (name, geom) VALUES 
     ('{name}', 'POINT({latitude} {longitude})');
 """
 # Esecuzione delle query per l'inserimento di una nuova collection
