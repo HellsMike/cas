@@ -14,7 +14,12 @@ def executeQuery(query):
     # Esecuzione delle query 
     with conn.cursor() as cur:
         cur.execute(query)
-        results = cur.fetchall()
+
+        try:
+            results = cur.fetchall() 
+        except:
+            results = None
+            
         conn.commit()   
         
     # Chiusura della connessione al database

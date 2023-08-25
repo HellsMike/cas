@@ -7,6 +7,7 @@ app = Flask(__name__)
 # Fornisce le collezioni esistenti nel database
 @app.route('/getCollections', methods=['POST'])
 def getCollection():
+    print(request.data)
     data = request.get_json()
     print(data)
     return sql.selectNCollections(data['latitudine'], data['longitudine'], data['n'])
