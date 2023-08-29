@@ -8,6 +8,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.EditText
 import android.widget.ListView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -21,16 +23,15 @@ class CollectionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.collection_activity)
 
-        val collections = findViewById<ListView>(R.id.collections)
-
         // Recupero dalla Main Activity i valori di longitudine e latitudine
         val longitudine = intent.getDoubleExtra("longitudine", 0.0)
         val latitudine = intent.getDoubleExtra("latitudine", 0.0)
 
         // Richiesta collezioni
-        val n = 2
+        val n = 50 // Numero collezioni mostrate nella lista
         val collectionList = getCollections(longitudine, latitudine, n)
 
+        val collections = findViewById<ListView>(R.id.collections)
         // Creazione di un ArrayAdapter per la ListView
         val adapter = CollectionAdapter(this, collectionList)
         collections.adapter = adapter
@@ -38,9 +39,22 @@ class CollectionActivity : AppCompatActivity() {
         // Notifica all'adapter che i dati sono cambiati
         adapter.notifyDataSetChanged()
 
-        // Recupera l'id della collection selezionata e la passa alla Main Activity
+        // Recupera l'id della collection selezionata e passa l'id alla Main Activity
         collections.setOnItemClickListener { parent, view, position, id ->
             val collection = collectionList[position]
+            val intent = Intent(this, MainActivity::class.java)
+            intent.putExtra("result", collection.id.toString())
+            setResult(Activity.RESULT_OK, intent)
+            finish()
+        }
+
+        val addButton = findViewById<Button>(R.id.add_button)
+        val newCollectionName = findViewById<EditText>(R.id.new_collection)
+
+        // Crea una nuova collection e la ritorna l'id alla Main Activity
+        addButton.setOnClickListener {
+            val collection = newCollection(longitudine, latitudine,
+                newCollectionName.text.toString())[0]
             val intent = Intent(this, MainActivity::class.java)
             intent.putExtra("result", collection.id.toString())
             setResult(Activity.RESULT_OK, intent)
@@ -54,8 +68,30 @@ class CollectionActivity : AppCompatActivity() {
         // Formattazione dei dati in JSON
         val JSONBody = "{\"longitudine\": $longitudine, \"latitudine\": $latitudine, \"n\": $n}"
         val header = mapOf("Content-Type" to "application/json")
+
         // Invio richiesta
         val fuelResponse = Fuel.post("$backendEndpoint/getCollections", body = JSONBody,
+            headers = header)
+        if (fuelResponse.statusCode == 200) {
+            val gson = Gson()
+            return@runBlocking gson.fromJson<Array<Collection>?>(
+                fuelResponse.body,
+                Array<Collection>::class.java
+            ).toList<Collection>()
+        }
+        return@runBlocking emptyList()
+    }
+
+    // Richiesta al backend per la creazione di una nuova collezione
+    private fun newCollection(longitudine: Double, latitudine: Double, nome: String) :
+            List<Collection> = runBlocking {
+        // Formattazione dei dati in JSON
+        val JSONBody = "{\"nome\": \"$nome\", \"longitudine\": $longitudine, " +
+                "\"latitudine\": $latitudine}"
+        val header = mapOf("Content-Type" to "application/json")
+
+        // Invio richiesta
+        val fuelResponse = Fuel.post("$backendEndpoint/newCollection", body = JSONBody,
             headers = header)
         if (fuelResponse.statusCode == 200) {
             val gson = Gson()
@@ -69,7 +105,7 @@ class CollectionActivity : AppCompatActivity() {
 }
 
 data class Collection(val id: Int, val nome: String, val longitudine: Double,
-                      val latitudine: Double, val distanza: Double)
+                      val latitudine: Double, val distanza: Double?)
 
 // Adapter per la ListView
 class CollectionAdapter(context: Context, private val collections: List<Collection>) :
