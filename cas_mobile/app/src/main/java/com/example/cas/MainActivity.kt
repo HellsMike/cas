@@ -5,12 +5,16 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.MediaStore
 import android.widget.Button
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -21,16 +25,6 @@ const val backendEndpoint = "http://10.0.2.2:8000"
 class MainActivity : AppCompatActivity() {
     private var longitude = 0.0
     private var latitude = 0.0
-
-    // Registrazione del callback per gestire il risultato restituito dall'activity delle collection
-    private val resultLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val collectionId = result.data?.getStringExtra("result")
-            // Recupero id della collection
-            print(collectionId)
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,14 +48,38 @@ class MainActivity : AppCompatActivity() {
                 10f, locationListener)
         }
 
+        // Registrazione del callback per gestire il risultato restituito dalla collection activity
+        val resultLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                // Recupero id della collection
+                val collectionId = result.data?.getStringExtra("result")
+                print(collectionId)
+            }
+        }
+
+        // Crea un ActivityResultCallback per gestire il risultato dell'Intent per scattare la foto
+        val takePictureCallback = ActivityResultCallback<ActivityResult> { result ->
+            if (result.resultCode == RESULT_OK) {
+                val imageUri = result.data?.clipData?.getItemAt(0)?.uri
+                // Creazione di una nuova activity per la visualizzazione delle collection
+                val intentCollezioni = Intent(this, CollectionActivity::class.java)
+                intentCollezioni.putExtra("longitudine", longitude)
+                intentCollezioni.putExtra("latitudine", latitude)
+                resultLauncher.launch(intentCollezioni)
+            }
+        }
+
+        // Crea un ActivityResultLauncher per l'Intent per scattare la foto
+        val takePictureLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult(), takePictureCallback)
+
         // Bottone per le foto
         val picButton = findViewById<Button>(R.id.pic_btn)
         picButton.setOnClickListener {
-            // Creazione di una nuova activity per la visualizzazione delle collection
-            val intent = Intent(this, CollectionActivity::class.java)
-            intent.putExtra("longitudine", longitude)
-            intent.putExtra("latitudine", latitude)
-            resultLauncher.launch(intent)
+            // Scatta foto
+            val intentFotocamera = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+            takePictureLauncher.launch(intentFotocamera)
         }
     }
 
