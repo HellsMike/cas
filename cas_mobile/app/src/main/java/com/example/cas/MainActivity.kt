@@ -26,8 +26,9 @@ class MainActivity : AppCompatActivity() {
     private val resultLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            val resultValue = result.data?.getStringExtra("result")
+            val collectionId = result.data?.getStringExtra("result")
             // Recupero id della collection
+            print(collectionId)
         }
     }
 
@@ -38,8 +39,7 @@ class MainActivity : AppCompatActivity() {
         // Aggiornamento della posizione
         if (ContextCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) !=
             PackageManager.PERMISSION_GRANTED ) {
-                ActivityCompat.requestPermissions(this, arrayOf(ACCESS_FINE_LOCATION),
-                    1)
+                ActivityCompat.requestPermissions(this, arrayOf(ACCESS_FINE_LOCATION), 1)
         } else {
             val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
