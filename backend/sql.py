@@ -45,11 +45,7 @@ def selectNCollections(longitudine, latitudine, n):
 
     return data_json
 
-def insertCollection():
-    name = 'Punto_prova'
-    latitude = 00.22222
-    longitude = 11.231231
-
+def insertCollection(name, latitude, longitude):
     # Query per l'inserimento di una nuova collection
     query = f"INSERT INTO collections (name, geom) VALUES ('{name}', 'POINT({longitude} {latitude})');"
     executeQuery(query)
