@@ -87,8 +87,3 @@ def createImageTable():
         );
         """
     executeQuery(query);
-
-createCollectionTable()
-createImageTable()
-insertCollection()
-insertImage()

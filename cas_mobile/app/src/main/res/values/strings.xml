@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">Cas</string>
     <string name="scatta_foto">Scatta Foto</string>
+    <string name="nuova_collezione">Nuova Collezione</string>
+    <string name="aggiungi">Aggiungi</string>
 </resources>

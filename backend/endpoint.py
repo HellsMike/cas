@@ -10,6 +10,6 @@ def getCollection():
     print(request.data)
     data = request.get_json()
     print(data)
-    return sql.selectNCollections(data['latitudine'], data['longitudine'], data['n'])
+    return sql.selectNCollections(data['longitudine'], data['latitudine'], data['n'])
 
 app.run(host='localhost', port=8000)
