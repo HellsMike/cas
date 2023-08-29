@@ -1,5 +1,4 @@
 from flask import Flask, request
-import json
 import sql
 
 app = Flask(__name__)
@@ -19,6 +18,5 @@ def newCollection():
     data = request.get_json()
     print(data)
     return sql.insertCollection(data['nome'], data['latitudine'], data['longitudine'])
-
 
 app.run(host='localhost', port=8000)

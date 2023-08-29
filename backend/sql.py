@@ -27,8 +27,24 @@ def executeQuery(query):
     
     return results
 
+def selectCollection(nome, longitudine, latitudine):
+    query = f"""
+        SELECT id, name, ST_X(geom), ST_Y(geom)
+        FROM collections
+        WHERE name = '{nome}' AND ST_X(geom) = {longitudine} AND ST_Y(geom) = {latitudine};
+        """
+    results = executeQuery(query)
+    
+    # Converti la lista di tuple in una lista di dizionari
+    data_dict = [dict(zip(['id', 'nome', 'longitudine', 'latitudine'], item)) for item in results]
+
+    # Formatta la lista di dizionari in JSON
+    data_json = json.dumps(data_dict, indent=4)
+
+    return data_json
+
 def selectNCollections(longitudine, latitudine, n):
-    # Query spaziale delle n collezioni più viine
+    # Query spaziale delle n collezioni più vicine
     query = f"""
         SELECT id, name, ST_X(geom), ST_Y(geom), ST_Distance(geom, ST_SetSRID(ST_MakePoint({longitudine}, {latitudine}), 0)) AS distance
         FROM collections
@@ -49,6 +65,8 @@ def insertCollection(name, latitude, longitude):
     # Query per l'inserimento di una nuova collection
     query = f"INSERT INTO collections (name, geom) VALUES ('{name}', 'POINT({longitude} {latitude})');"
     executeQuery(query)
+
+    return selectCollection(name, longitude, latitude)
     
 def insertImage():
     url = 'path:to:image'
