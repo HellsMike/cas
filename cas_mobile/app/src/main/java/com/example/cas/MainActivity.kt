@@ -2,6 +2,7 @@ package com.example.cas
 
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.app.Activity
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -9,26 +10,38 @@ import android.graphics.Bitmap
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Base64
 import android.widget.Button
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.google.gson.Gson
+import fuel.Fuel
+import fuel.post
+import kotlinx.coroutines.runBlocking
+import org.json.JSONObject
 
 // Indirizzo delle altre componenti
 const val backendEndpoint = "http://10.0.2.2:8000"
 
 class MainActivity : AppCompatActivity() {
+    // Coordinate attuali
     private var longitude = 0.0
     private var latitude = 0.0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        var imageUri = Uri.EMPTY // Uri della foto scattata
+        var onClickLongitude = 0.0 // Longitudine al momento dello scatto della foto
+        var onClickLatitude = 0.0 // Latitudine al momento dello scatto della foto
 
         // Aggiornamento della posizione
         if (ContextCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) !=
@@ -54,14 +67,27 @@ class MainActivity : AppCompatActivity() {
             if (result.resultCode == Activity.RESULT_OK) {
                 // Recupero id della collection
                 val collectionId = result.data?.getStringExtra("result")
-                print(collectionId)
+
+                // Invio della richiesta di inserimento della foto
+                // Ottieni un InputStream per l'URI dell'immagine
+                val inputStream = contentResolver.openInputStream(imageUri)
+
+                // Leggi i dati dall'InputStream e convertili in una stringa codificata in base64
+                val imageBytes = inputStream?.readBytes()
+                val base64Image = Base64.encodeToString(imageBytes, Base64.DEFAULT)
+
+                // Invio delle richiesta per aggiungere la foto al db
+                sendPhoto(onClickLongitude, onClickLatitude, collectionId!!, base64Image)
             }
         }
 
         // Crea un ActivityResultCallback per gestire il risultato dell'Intent per scattare la foto
         val takePictureCallback = ActivityResultCallback<ActivityResult> { result ->
             if (result.resultCode == RESULT_OK) {
-                val imageUri = result.data?.clipData?.getItemAt(0)?.uri
+                // Cattura della posizione al momento della foto
+                onClickLongitude = longitude
+                onClickLatitude = latitude
+
                 // Creazione di una nuova activity per la visualizzazione delle collection
                 val intentCollezioni = Intent(this, CollectionActivity::class.java)
                 intentCollezioni.putExtra("longitudine", longitude)
@@ -79,6 +105,11 @@ class MainActivity : AppCompatActivity() {
         picButton.setOnClickListener {
             // Scatta foto
             val intentFotocamera = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+            val values = ContentValues()
+            values.put(MediaStore.Images.Media.TITLE, "New Picture")
+            values.put(MediaStore.Images.Media.DESCRIPTION, "From your Camera")
+            imageUri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+            intentFotocamera.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
             takePictureLauncher.launch(intentFotocamera)
         }
     }
@@ -88,5 +119,19 @@ class MainActivity : AppCompatActivity() {
             longitude = loc.longitude
             latitude = loc.latitude
         }
+    }
+
+    private fun sendPhoto(longitudine: Double, latitudine: Double, collectionId: String,
+                          base64image: String) = runBlocking {
+        // Formattazione dei dati in JSON
+        val jsonBody = JSONObject()
+            .put("longitudine", longitudine)
+            .put("latitudine", latitudine)
+            .put("collectionId", collectionId)
+            .put("base64image", base64image)
+        val header = mapOf("Content-Type" to "application/json")
+
+        // Invio richiesta
+        Fuel.post("$backendEndpoint/insertPhoto", body = jsonBody.toString(), headers = header)
     }
 }

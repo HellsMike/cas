@@ -17,6 +17,7 @@ import fuel.Fuel
 import fuel.post
 import kotlinx.coroutines.runBlocking
 import com.google.gson.Gson
+import org.json.JSONObject
 
 class CollectionActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,12 +67,16 @@ class CollectionActivity : AppCompatActivity() {
     private fun getCollections(longitudine: Double, latitudine: Double, n: Int) :
             List<Collection> = runBlocking {
         // Formattazione dei dati in JSON
-        val JSONBody = "{\"longitudine\": $longitudine, \"latitudine\": $latitudine, \"n\": $n}"
+        val jsonBody = JSONObject()
+            .put("longitudine", longitudine)
+            .put("latitudine", latitudine)
+            .put("n", n)
         val header = mapOf("Content-Type" to "application/json")
 
         // Invio richiesta
-        val fuelResponse = Fuel.post("$backendEndpoint/getCollections", body = JSONBody,
-            headers = header)
+        val fuelResponse = Fuel.post("$backendEndpoint/getCollections",
+            body = jsonBody.toString(), headers = header)
+
         if (fuelResponse.statusCode == 200) {
             val gson = Gson()
             return@runBlocking gson.fromJson<Array<Collection>?>(
@@ -86,13 +91,16 @@ class CollectionActivity : AppCompatActivity() {
     private fun newCollection(longitudine: Double, latitudine: Double, nome: String) :
             List<Collection> = runBlocking {
         // Formattazione dei dati in JSON
-        val JSONBody = "{\"nome\": \"$nome\", \"longitudine\": $longitudine, " +
-                "\"latitudine\": $latitudine}"
+        val jsonBody = JSONObject()
+            .put("nome", nome)
+            .put("longitudine", longitudine)
+            .put("latitudine", latitudine)
         val header = mapOf("Content-Type" to "application/json")
 
         // Invio richiesta
-        val fuelResponse = Fuel.post("$backendEndpoint/newCollection", body = JSONBody,
-            headers = header)
+        val fuelResponse = Fuel.post("$backendEndpoint/newCollection",
+            body = jsonBody.toString(), headers = header)
+
         if (fuelResponse.statusCode == 200) {
             val gson = Gson()
             return@runBlocking gson.fromJson<Array<Collection>?>(

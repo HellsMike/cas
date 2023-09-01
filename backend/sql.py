@@ -68,12 +68,7 @@ def insertCollection(name, latitude, longitude):
 
     return selectCollection(name, longitude, latitude)
     
-def insertImage():
-    url = 'path:to:image'
-    collection_id = 1
-    latitude = 00.22221
-    longitude = 11.231230
-
+def insertImage(url, collection_id, longitude, latitude):
     # Query per l'inserimento di una nuova immagine
     query = f"INSERT INTO images (url, geom, collection_id) VALUES ('{url}', 'POINT({longitude} {latitude})', '{collection_id}');"
     executeQuery(query)
