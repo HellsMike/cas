@@ -61,6 +61,21 @@ def selectNCollections(longitudine, latitudine, n):
 
     return data_json
 
+def selectNImages(longitudine, latitudine, n):
+    # Query spaziale delle n collezioni più vicine
+    query = f"""
+        SELECT url, ST_X(geom), ST_Y(geom), ST_Distance(geom, ST_SetSRID(ST_MakePoint({longitudine}, {latitudine}), 0)) AS distance
+        FROM images
+        ORDER BY distance
+        LIMIT {n}
+        """
+    results = executeQuery(query)
+    
+    # Converti la lista di tuple in una lista di dizionari
+    data_dict = [dict(zip(['url', 'longitudine', 'latitudine', 'distanza'], item)) for item in results]
+
+    return data_dict
+
 def insertCollection(name, latitude, longitude):
     # Query per l'inserimento di una nuova collection
     query = f"INSERT INTO collections (name, geom) VALUES ('{name}', 'POINT({longitude} {latitude})');"

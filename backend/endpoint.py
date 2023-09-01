@@ -1,18 +1,41 @@
 from flask import Flask, request
 import base64
 import datetime
+import json
 import os
 import sql
 
 app = Flask(__name__)
 
-# Fornisce le collezioni esistenti nel database
+# Fornisce le N collezioni più vicine alle coordinate fornite
 @app.route('/getCollections', methods=['POST'])
 def getCollection():
     print(request.data)
     data = request.get_json()
     print(data)
     return sql.selectNCollections(data['longitudine'], data['latitudine'], data['n'])
+
+# Fornisce le N immagini più vicine alle coordinate fornite
+@app.route('/getImages', methods=['POST'])
+def getImages():
+    print(request.data)
+    data = request.get_json()
+    print(data)
+    images = sql.selectNImages(data['longitudine'], data['latitudine'], data['n'])
+    
+    for image in images:
+        # Leggi i dati dell'immagine dal file
+        with open(image['url'], 'rb') as f:
+            image_data = f.read()
+
+        del image['url']
+        # Codifica l'immagine in base64
+        image['base64image'] = base64.b64encode(image_data).decode('utf-8')
+
+    # Formatta la lista di dizionari in JSON
+    data_json = json.dumps(images, indent=4)
+
+    return data_json
 
 # Crea una nuova collezione
 @app.route('/newCollection', methods=['POST'])
