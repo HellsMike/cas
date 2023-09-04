@@ -1,6 +1,8 @@
 import psycopg2
 import json
 
+srid=4326
+
 def executeQuery(query):    
     # Connessione al database
     conn = psycopg2.connect(
@@ -44,14 +46,16 @@ def selectCollection(nome, longitudine, latitudine):
     return data_json
 
 def selectNCollections(longitudine, latitudine, n):
-    # Query spaziale delle n collezioni più vicine
+# Query spaziale delle n collezioni più vicine
     query = f"""
-        SELECT id, name, ST_X(geom), ST_Y(geom), ST_Distance(geom, ST_SetSRID(ST_MakePoint({longitudine}, {latitudine}), 0)) AS distance
+        SELECT id, name, ST_X(geom) AS longitudine, ST_Y(geom) AS latitudine,
+        ST_DistanceSphere(ST_SetSRID(ST_MakePoint({longitudine}, {latitudine}), {srid}), geom) / 1000 AS distanza
         FROM collections
-        ORDER BY distance
+        ORDER BY distanza
         LIMIT {n}
         """
     results = executeQuery(query)
+
     
     # Converti la lista di tuple in una lista di dizionari
     data_dict = [dict(zip(['id', 'nome', 'longitudine', 'latitudine', 'distanza'], item)) for item in results]
@@ -62,13 +66,15 @@ def selectNCollections(longitudine, latitudine, n):
     return data_json
 
 def selectNImages(longitudine, latitudine, n):
-    # Query spaziale delle n collezioni più vicine
+    # Query spaziale delle n immagini più vicine
     query = f"""
-        SELECT url, ST_X(geom), ST_Y(geom), ST_Distance(geom, ST_SetSRID(ST_MakePoint({longitudine}, {latitudine}), 0)) AS distance
+        SELECT url, ST_X(geom) AS longitudine, ST_Y(geom) AS latitudine,
+        ST_DistanceSphere(ST_SetSRID(ST_MakePoint({longitudine}, {latitudine}), {srid}), geom) / 1000 AS distanza
         FROM images
-        ORDER BY distance
+        ORDER BY distanza
         LIMIT {n}
         """
+        
     results = executeQuery(query)
     
     # Converti la lista di tuple in una lista di dizionari
@@ -76,16 +82,17 @@ def selectNImages(longitudine, latitudine, n):
 
     return data_dict
 
+
 def insertCollection(name, latitude, longitude):
     # Query per l'inserimento di una nuova collection
-    query = f"INSERT INTO collections (name, geom) VALUES ('{name}', 'POINT({longitude} {latitude})');"
+    query = f"INSERT INTO collections (name, geom) VALUES ('{name}', ST_GeomFromText('SRID={srid};POINT({longitude} {latitude})'));"
     executeQuery(query)
 
     return selectCollection(name, longitude, latitude)
     
 def insertImage(url, collection_id, longitude, latitude):
     # Query per l'inserimento di una nuova immagine
-    query = f"INSERT INTO images (url, geom, collection_id) VALUES ('{url}', 'POINT({longitude} {latitude})', '{collection_id}');"
+    query = f"INSERT INTO images (url, geom, collection_id) VALUES ('{url}', ST_GeomFromText('SRID={srid};POINT({longitude} {latitude}))', '{collection_id}');"
     executeQuery(query)
 
 # Crea tabella delle collezioni
@@ -111,3 +118,22 @@ def createImageTable():
         );
         """
     executeQuery(query);
+
+#testing snippet e risultato
+#print(selectNCollections(44.8, 10.3341, 2))
+"""[
+    {
+        "id": 1,
+        "nome": "Parma",
+        "longitudine": 44.8015,
+        "latitudine": 10.3341,
+        "distanza": 0.16408698449
+    },
+    {
+        "id": 2,
+        "nome": "Bologna",
+        "longitudine": 44.4949,
+        "latitudine": 11.3426,
+        "distanza": 116.98569484505
+    }
+]"""
