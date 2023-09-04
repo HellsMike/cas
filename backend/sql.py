@@ -92,7 +92,7 @@ def insertCollection(name, latitude, longitude):
     
 def insertImage(url, collection_id, longitude, latitude):
     # Query per l'inserimento di una nuova immagine
-    query = f"INSERT INTO images (url, geom, collection_id) VALUES ('{url}', ST_GeomFromText('SRID={srid};POINT({longitude} {latitude}))', '{collection_id}');"
+    query = f"INSERT INTO images (url, geom, collection_id) VALUES ('{url}', ST_GeomFromText('SRID={srid};POINT({longitude} {latitude})'), '{collection_id}');"
     executeQuery(query)
 
 # Crea tabella delle collezioni
@@ -120,6 +120,7 @@ def createImageTable():
     executeQuery(query);
 
 #testing snippet e risultato
+
 #print(selectNCollections(44.8, 10.3341, 2))
 """[
     {
