@@ -14,8 +14,10 @@ import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.ArrayMap
 import android.util.Base64
 import android.widget.Button
+import android.widget.EditText
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,6 +28,7 @@ import fuel.Fuel
 import fuel.post
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
+import java.io.Serializable
 
 // Indirizzo delle altre componenti
 const val backendEndpoint = "http://10.0.2.2:8000"
@@ -111,6 +114,19 @@ class MainActivity : AppCompatActivity() {
             imageUri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
             intentFotocamera.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
             takePictureLauncher.launch(intentFotocamera)
+        }
+
+        // Casella per l'inserimento di n numero di foto da visualizzare
+        val nGallery = findViewById<EditText>(R.id.n_text)
+        // Bottone per la visualizzazione delle n foto più vicine
+        val galleryButton = findViewById<Button>(R.id.gallery_btn)
+        galleryButton.setOnClickListener {
+            // Crea un Intent per avviare la GalleryActivity
+            val intent = Intent(this, GalleryActivity::class.java)
+            intent.putExtra("n", nGallery.text.toString().toInt())
+            intent.putExtra("longitudine", longitude)
+            intent.putExtra("latitudine", latitude)
+            startActivity(intent)
         }
     }
 

@@ -3,4 +3,6 @@
     <string name="scatta_foto">Scatta Foto</string>
     <string name="nuova_collezione">Nuova Collezione</string>
     <string name="aggiungi">Aggiungi</string>
+    <string name="n">N</string>
+    <string name="visualizza_le_n_foto_pi_vicine">Visualizza le N foto più vicine</string>
 </resources>
