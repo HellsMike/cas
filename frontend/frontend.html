@@ -9,6 +9,10 @@
 </head>
 <body>
     <div id="map" style="width: 100%; height: 500px;"></div>
+    <div id="polygons-container" style="display: none;">
+        <div id="polygons" style="width: 100%; height: 500px;"></div>
+    </div>
+    <input type="file" id="geojsonFile" accept=".geojson" onchange="handleFileSelect(event)">
     <script src="start_script.js"></script>
 </body>
 </html>
