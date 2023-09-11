@@ -52,17 +52,9 @@ function handleFileSelect(event) {
             const geojson = JSON.parse(e.target.result);
 
             if (geojson.type === "FeatureCollection" && geojson.features) {
-                // Nascondi la mappa principale
-                mainMap.remove();
-
                 // Mostra il contenitore dei poligoni e crea la mappa dei poligoni
-                const polygonsContainer = document.getElementById("polygons-container");
+                const polygonsContainer = document.getElementById("map");
                 polygonsContainer.style.display = "block";
-                
-                const polygonsMap = L.map('polygons').setView([0, 0], 2);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                }).addTo(polygonsMap);
 
                 geojson.features.forEach(function(feature) {
                     if (feature.geometry.type === "MultiPolygon") {
@@ -88,13 +80,13 @@ function handleFileSelect(event) {
                             },
                     });
 
-                    polygonLayer.addTo(polygonsMap)
+                    polygonLayer.addTo(mainMap)
                     }
                 });
 
                 // Aggiungi i marker delle città alla mappa dei poligoni
                 var cityLayer = L.layerGroup(cityMarkers);
-                cityLayer.addTo(polygonsMap);
+                cityLayer.addTo(mainMap);
             } else {
                 console.error("Il file GeoJSON non contiene un MultiPolygon.");
             }
