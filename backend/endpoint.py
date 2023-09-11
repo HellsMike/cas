@@ -1,4 +1,5 @@
 from flask import Flask, request
+from flask_cors import CORS
 from PIL import Image
 import base64
 import io
@@ -8,6 +9,7 @@ import os
 import sql
 
 app = Flask(__name__)
+CORS(app)
 
 # Fornisce le N collezioni più vicine alle coordinate fornite
 @app.route('/getCollections', methods=['POST'])
@@ -17,6 +19,7 @@ def getCollection():
     print(data)
     return sql.selectNCollections(data['longitudine'], data['latitudine'], data['n'])
 
+# Fornisce le N immagini più vicine alle coordinate fornite
 @app.route('/getImages', methods=['POST'])
 def getImages():
     print(request.data)
@@ -46,6 +49,11 @@ def getImages():
     data_json = json.dumps(images, indent=4)
 
     return data_json
+
+# Fornisce i dati relativi ai marker globali
+@app.route('/getGlobalMarkers', methods=['GET'])
+def getGlobalMarker():
+    return sql.selectAllMarker()
 
 # Crea una nuova collezione
 @app.route('/newCollection', methods=['POST'])

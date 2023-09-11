@@ -65,6 +65,20 @@ def selectNCollections(longitudine, latitudine, n):
 
     return data_json
 
+def selectAllMarker():
+    query = f"""
+        SELECT ST_X(i.geom) AS longitude, ST_Y(i.geom) AS latitude, c.name AS collection_name
+        FROM images AS i
+        JOIN collections AS c ON i.collection_id = c.id;
+        """
+        
+    results = executeQuery(query)
+    
+    # Converti la lista di tuple in una lista di dizionari
+    data_dict = [dict(zip(['longitudine', 'latitudine', 'nome_collezione'], item)) for item in results]
+
+    return data_dict
+
 def selectNImages(longitudine, latitudine, n):
     # Query spaziale delle n immagini più vicine
     query = f"""
