@@ -1,0 +1,16 @@
+{
+  "name": "cas-frontend",
+  "version": "1.0.0",
+  "description": "Modulo frontend per il progetto cas",
+  "main": "endpoint.js",
+  "type": "module",
+  "scripts": {
+    "start": "node endpoint.js"
+  },
+  "author": "Michele Bianco, Akira Petrolini",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "ejs": "^3.1.6"
+  }
+}

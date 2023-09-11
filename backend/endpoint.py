@@ -47,7 +47,6 @@ def getImages():
 
     return data_json
 
-
 # Crea una nuova collezione
 @app.route('/newCollection', methods=['POST'])
 def newCollection():

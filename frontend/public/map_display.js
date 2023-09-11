@@ -36,12 +36,8 @@ function addCityMarkers() {
     cityLayer.addTo(mainMap);
 }
 
-//funzione per verificare se un Marker è contenuto in un polygon
-function isMarkerInsidePolygon(marker, polygonFeature) {
-    var polygon = L.geoJSON(polygonFeature);
-    return polygon.getBounds().contains(marker.getLatLng());
-}
-
+// Chiamata alla funzione per aggiungere marker per le città
+addCityMarkers();
 
 // Funzione per gestire il caricamento del file GeoJSON
 function handleFileSelect(event) {
@@ -104,5 +100,8 @@ function handleFileSelect(event) {
     }
 }
 
-// Chiamata alla funzione per aggiungere marker per le città
-addCityMarkers();
+//funzione per verificare se un Marker è contenuto in un polygon
+function isMarkerInsidePolygon(marker, polygonFeature) {
+    var polygon = L.geoJSON(polygonFeature);
+    return polygon.getBounds().contains(marker.getLatLng());
+}
