@@ -36,6 +36,13 @@ function addCityMarkers() {
     cityLayer.addTo(mainMap);
 }
 
+//funzione per verificare se un Marker è contenuto in un polygon
+function isMarkerInsidePolygon(marker, polygonFeature) {
+    var polygon = L.geoJSON(polygonFeature);
+    return polygon.getBounds().contains(marker.getLatLng());
+}
+
+
 // Funzione per gestire il caricamento del file GeoJSON
 function handleFileSelect(event) {
     const file = event.target.files[0];
@@ -60,7 +67,29 @@ function handleFileSelect(event) {
 
                 geojson.features.forEach(function(feature) {
                     if (feature.geometry.type === "MultiPolygon") {
-                        L.geoJSON(feature).addTo(polygonsMap);
+                        var markerCount=0;//contatore di marker nel singolo poligono
+                        // Calcola il conteggio dei marker all'interno del poligono
+                        cityMarkers.forEach(function(marker){
+                            if (isMarkerInsidePolygon(marker, feature)) {
+                                markerCount++;
+                            }
+                        })
+                        // Imposta il colore in base al conteggio dei marker
+                        var fillColor = "red"; // Colore predefinito se nessun marker è presente
+                        if (markerCount > 0) {
+                        fillColor = markerCount < 2 ? "yellow" : "green";
+                        }
+                        // Crea un layer con il poligono e il colore appropriato
+                        var polygonLayer = L.geoJSON(feature, {
+                            style: {
+                                fillColor: fillColor,
+                                fillOpacity: 0.5, // Opacità del riempimento
+                                color: "black", // Colore del bordo
+                                weight: 2, // Spessore del bordo
+                            },
+                    });
+
+                    polygonLayer.addTo(polygonsMap)
                     }
                 });
 
