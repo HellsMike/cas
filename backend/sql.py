@@ -79,6 +79,25 @@ def selectAllMarker():
 
     return data_dict
 
+def selectMarkersFromGeoJSON(geometries):
+    results = []
+    for geometry in geometries:
+        geometry_json = json.dumps(geometry)
+        query = f"""
+            SELECT ST_X(i.geom) AS longitude, ST_Y(i.geom) AS latitude, c.name AS collection_name
+            FROM images AS i
+            JOIN collections AS c ON i.collection_id = c.id
+            WHERE ST_intersects(ST_SetSRID(i.geom, 4326), (SELECT ST_SetSRID(ST_GeomFromGeoJSON ('{geometry_json}'), 4326) AS geom));
+            """
+        
+        result = executeQuery(query)
+        if result:
+            # Converti la lista di tuple in una lista di dizionari
+            for item in result:
+                results.append(dict(zip(['longitudine', 'latitudine', 'nome_collezione'], item)))
+
+    return results
+
 def selectNImages(longitudine, latitudine, n):
     # Query spaziale delle n immagini più vicine
     query = f"""
@@ -95,7 +114,6 @@ def selectNImages(longitudine, latitudine, n):
     data_dict = [dict(zip(['url', 'longitudine', 'latitudine', 'distanza'], item)) for item in results]
 
     return data_dict
-
 
 def insertCollection(name, latitude, longitude):
     # Query per l'inserimento di una nuova collection
@@ -132,23 +150,3 @@ def createImageTable():
         );
         """
     executeQuery(query);
-
-#testing snippet e risultato
-
-#print(selectNCollections(44.8, 10.3341, 2))
-"""[
-    {
-        "id": 1,
-        "nome": "Parma",
-        "longitudine": 44.8015,
-        "latitudine": 10.3341,
-        "distanza": 0.16408698449
-    },
-    {
-        "id": 2,
-        "nome": "Bologna",
-        "longitudine": 44.4949,
-        "latitudine": 11.3426,
-        "distanza": 116.98569484505
-    }
-]"""

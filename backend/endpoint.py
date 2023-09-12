@@ -14,7 +14,6 @@ CORS(app)
 # Fornisce le N collezioni più vicine alle coordinate fornite
 @app.route('/getCollections', methods=['POST'])
 def getCollection():
-    print(request.data)
     data = request.get_json()
     print(data)
     return sql.selectNCollections(data['longitudine'], data['latitudine'], data['n'])
@@ -22,7 +21,6 @@ def getCollection():
 # Fornisce le N immagini più vicine alle coordinate fornite
 @app.route('/getImages', methods=['POST'])
 def getImages():
-    print(request.data)
     data = request.get_json()
     print(data)
     images = sql.selectNImages(data['longitudine'], data['latitudine'], data['n'])
@@ -55,10 +53,17 @@ def getImages():
 def getGlobalMarker():
     return sql.selectAllMarker()
 
+# Fornisce i dati relativi ai marker locali
+@app.route('/getLocalMarkers', methods=['POST'])
+def getLocalMarker():
+    data = request.get_json()
+    # Estrae la geometria da ciascuna feature
+    geometries = [feature['geometry'] for feature in data['features']]
+    return sql.selectMarkersFromGeoJSON(geometries)
+
 # Crea una nuova collezione
 @app.route('/newCollection', methods=['POST'])
 def newCollection():
-    print(request.data)
     data = request.get_json()
     print(data)
     return sql.insertCollection(data['nome'], data['latitudine'], data['longitudine'])
