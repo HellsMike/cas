@@ -19,6 +19,8 @@ var polygonLayerBorderGroup = L.layerGroup(); // Gruppo layer per i bordi dei po
 var markers = []; // Array per tenere traccia dei marker
 var markerLayer; // Layer per i marker
 
+var soglia = 2; // Soglia per il cambio colorazione da giallo a verde
+
 // Controlla l'opzione selezionata per i marker
 var markerRadios = document.querySelectorAll('input[type=radio][name="marker"]');
 
@@ -218,8 +220,22 @@ function handleFileSelect(event) {
 
 // Verifica se un Marker è contenuto in un polygon
 function isMarkerInsidePolygon(marker, polygonFeature) {
-    var polygon = L.geoJSON(polygonFeature);
-    return polygon.getBounds().contains(marker.getLatLng());
+    var inPolygon = false;
+    var point = turf.point([marker.getLatLng().lng, marker.getLatLng().lat]);
+    // Controlla se la feature è un polygon o multipolygon
+    if (polygonFeature.geometry.type === "Polygon") {
+        var polygon = turf.polygon(polygonFeature.geometry.coordinates);
+        inPolygon = turf.booleanPointInPolygon(point, polygon);
+    } else if (polygonFeature.geometry.type === "MultiPolygon") {
+        for (var i = 0; i < polygonFeature.geometry.coordinates.length; i++) {
+            var polygon = turf.polygon(polygonFeature.geometry.coordinates[i]);
+            if (turf.booleanPointInPolygon(point, polygon)) {
+                inPolygon = true;
+                break;
+            }
+        }
+    }
+    return inPolygon;
 }
 
 // Genera la colorazione dei poligoni
@@ -262,7 +278,7 @@ function colorMap() {
                     var fillColor = "red"; // Colore predefinito se nessun marker è presente
                     
                     if (markerCount > 0) 
-                        fillColor = markerCount < 2 ? "yellow" : "green";
+                        fillColor = markerCount < soglia ? "yellow" : "green";
                     
                     // Crea un layer con il poligono e il colore appropriato
                     var polygonLayer = L.geoJSON(feature, {
