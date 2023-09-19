@@ -64,7 +64,7 @@ def getLocalMarker():
 #Selezione di K-Means con K fissato
 @app.route('/getKMeansFixated', methods=['POST'])
 def getFixatedKMeans():
-    data=request.get_json()
+    data = request.get_json()
     print(data)
     return sql.selectFixatedKMeans(data['k'])
 

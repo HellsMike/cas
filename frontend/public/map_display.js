@@ -331,7 +331,23 @@ function addClusterMarkers() {
         })
         .catch(error => console.error('Error:', error));
     } else {
-        console.log('Hellblow Method')
+        fetch(backendEndpoint + '/getElbowKMeans')
+        .then(response => response.json())
+        .then(data => {
+            data.forEach(item => {
+                // Crea un nuovo marker per ogni elemento in data
+                var marker = L.marker([item.latitudine, item.longitudine])
+                    .bindPopup('Numero marker: ' + item.size)
+                    .openPopup();
+    
+                markers.push(marker); // Aggiungi il marker all'array
+            });
+    
+            // Aggiungi i marker alla mappa principale
+            markerLayer = L.layerGroup(markers);
+            markerLayer.addTo(mainMap);   
+        })
+        .catch(error => console.error('Error:', error));
     }
 }
 

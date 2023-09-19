@@ -62,7 +62,7 @@
                 <input type="radio" id="cluster_marker" name="marker" value="cluster">
                 <label for="cluster_marker">Mostra i centroidi dei cluster ottenuti con K-means</label><br>
                 <label for="n_cluster">Numero cluster:</label>
-                <input type="number" id="n_cluster" name="n_cluster" min="1" step="1" disabled>
+                <input type="number" id="n_cluster" name="n_cluster" placeholder="Vuoto per k automatico" min="1" step="1" disabled>
                 <button type="button" id="cluster_submit" onclick="addClusterMarkers()" disabled>Esegui</button>
             </form>
         </div>
