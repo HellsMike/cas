@@ -98,6 +98,30 @@ def selectMarkersFromGeoJSON(geometries):
 
     return results
 
+#Ritorna, con k fissato, id del cluster, longitudine e latitudine del centroide, e dimensione del cluster
+def selectFixatedKMeans(k):
+    results = []
+    query = f"""
+            SELECT cluster_id, 
+                   ST_X(ST_Centroid(ST_Collect(geom))) AS longitudine, 
+                   ST_Y(ST_Centroid(ST_Collect(geom))) AS latitudine,
+                   COUNT(*) AS size
+            FROM (
+                SELECT 
+                    ST_ClusterKMeans(geom, {k}) OVER () AS cluster_id,
+                    geom
+                FROM images
+            ) subquery
+            GROUP BY cluster_id;
+        """
+    results = executeQuery(query)
+    data_dict = [dict(zip(['id', 'longitudine', 'latitudine', 'size'], item)) for item in results]
+
+    # Formatta la lista di dizionari in JSON
+    data_json = json.dumps(data_dict, indent=4)
+
+    return data_json
+
 def selectNImages(longitudine, latitudine, n):
     # Query spaziale delle n immagini più vicine
     query = f"""

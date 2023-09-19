@@ -61,6 +61,13 @@ def getLocalMarker():
     geometries = [feature['geometry'] for feature in data['features']]
     return sql.selectMarkersFromGeoJSON(geometries)
 
+#Selezione di K-Means con K fissato
+@app.route('/getKMeansFixated', methods=['POST'])
+def getFixatedKMeans():
+    data=request.get_json()
+    print(data)
+    return sql.selectFixatedKMeans(data['k'])
+
 # Crea una nuova collezione
 @app.route('/newCollection', methods=['POST'])
 def newCollection():
