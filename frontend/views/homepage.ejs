@@ -25,13 +25,13 @@
         <div class="box">
             <h3>Carica immagini</h3>
             <form id="uploadForm">
+                <input type="file" id="fileInput" multiple accept="image/*" />
+                <input type="file" id="directoryInput" webkitdirectory directory accept="image/*" style="display: none;" />
+                <br/>
                 <select id="uploadType" onchange="toggleInput(this.value)">
                   <option value="file">File</option>
                   <option value="directory">Cartella</option>
                 </select>
-                <br/>
-                <input type="file" id="fileInput" multiple accept="image/*" />
-                <input type="file" id="directoryInput" webkitdirectory directory accept="image/*" style="display: none;" />
                 <br/>
                 <label for="latitude">Latitudine:</label><br>
                 <input type="text" id="latitude" name="latitude"><br>
@@ -58,7 +58,12 @@
                 <input type="radio" id="global_marker" name="marker" value="global">
                 <label for="global_marker">Mostra marker in tutto il mondo</label><br>
                 <input type="radio" id="local_marker" name="marker" value="local" disabled>
-                <label for="local_marker">Mostra marker all'interno dei confini del GEOJSON</label>
+                <label for="local_marker">Mostra marker all'interno dei confini del GEOJSON</label><br>
+                <input type="radio" id="cluster_marker" name="marker" value="cluster">
+                <label for="cluster_marker">Mostra i centroidi dei cluster ottenuti con K-means</label><br>
+                <label for="n_cluster">Numero cluster:</label>
+                <input type="number" id="n_cluster" name="n_cluster" min="1" step="1" disabled>
+                <button type="button" id="cluster_submit" onclick="addClusterMarkers()" disabled>Esegui</button>
             </form>
         </div>
         <div class="box">

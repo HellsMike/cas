@@ -33,6 +33,8 @@ for (var i = 0; i < markerRadios.length; i++) {
                     // Rimuove eventuali marker presenti
                     mainMap.removeLayer(markerLayer)
                     markers = []
+                    document.getElementById('n_cluster').disabled = true;
+                    document.getElementById('cluster_submit').disabled = true;
 
                     break;
                 case 'global':
@@ -41,6 +43,8 @@ for (var i = 0; i < markerRadios.length; i++) {
                         mainMap.removeLayer(markerLayer)
                         markers = []
 
+                    document.getElementById('n_cluster').disabled = true;
+                    document.getElementById('cluster_submit').disabled = true;
                     addGlobalMarkers();
 
                     break;
@@ -50,7 +54,15 @@ for (var i = 0; i < markerRadios.length; i++) {
                         mainMap.removeLayer(markerLayer)
                         markers = []
 
+                    document.getElementById('n_cluster').disabled = true;
+                    document.getElementById('cluster_submit').disabled = true;
                     addLocalMarkers();
+
+                    break;
+                case 'cluster':
+                    // Aggiunge i marker dei centroidi
+                    document.getElementById('n_cluster').disabled = false; 
+                    document.getElementById('cluster_submit').disabled = false;
 
                     break;
             }
@@ -282,6 +294,45 @@ function addLocalMarkers() {
         markerLayer.addTo(mainMap);   
     })
     .catch(error => console.error('Error:', error));
+}
+
+// Aggiunge i marker dei centroidi dei cluster
+function addClusterMarkers() {
+    if (mainMap.hasLayer(markerLayer)) {
+        mainMap.removeLayer(markerLayer)
+        markers = []
+    }
+
+    var n_cluster = document.getElementById("n_cluster").value;
+    
+    // Se il numero di cluster è stato dato in input esegue il kmeans con k altrimenti utilizza l'elbow method
+    if (n_cluster > 0 ) {
+        fetch(backendEndpoint + '/getKMeansFixated', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ k: n_cluster }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            data.forEach(item => {
+                // Crea un nuovo marker per ogni elemento in data
+                var marker = L.marker([item.latitudine, item.longitudine])
+                    .bindPopup('Numero marker: ' + item.size)
+                    .openPopup();
+    
+                markers.push(marker); // Aggiungi il marker all'array
+            });
+    
+            // Aggiungi i marker alla mappa principale
+            markerLayer = L.layerGroup(markers);
+            markerLayer.addTo(mainMap);   
+        })
+        .catch(error => console.error('Error:', error));
+    } else {
+        console.log('Hellblow Method')
+    }
 }
 
 // Verifica se un Marker è contenuto in un polygon
