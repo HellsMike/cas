@@ -105,17 +105,19 @@ def selectFixatedKMeans(k):
             SELECT cluster_id, 
                    ST_X(ST_Centroid(ST_Collect(geom))) AS longitudine, 
                    ST_Y(ST_Centroid(ST_Collect(geom))) AS latitudine,
-                   COUNT(*) AS size
+                   COUNT(*) AS size,
+                   array_agg(id) AS foto_ids
             FROM (
                 SELECT 
                     ST_ClusterKMeans(geom, {k}) OVER () AS cluster_id,
+                    id,
                     geom
                 FROM images
             ) subquery
             GROUP BY cluster_id;
         """
     results = executeQuery(query)
-    data_dict = [dict(zip(['id', 'longitudine', 'latitudine', 'size'], item)) for item in results]
+    data_dict = [dict(zip(['id', 'longitudine', 'latitudine', 'size', 'imagesIds'], item)) for item in results]
 
     # Formatta la lista di dizionari in JSON
     data_json = json.dumps(data_dict, indent=4)
