@@ -102,20 +102,21 @@ def selectMarkersFromGeoJSON(geometries):
 def selectFixatedKMeans(k):
     results = []
     query = f"""
-            SELECT cluster_id, 
-                   ST_X(ST_Centroid(ST_Collect(geom))) AS longitudine, 
-                   ST_Y(ST_Centroid(ST_Collect(geom))) AS latitudine,
-                   COUNT(*) AS size,
-                   array_agg(id) AS foto_ids
-            FROM (
-                SELECT 
-                    ST_ClusterKMeans(geom, {k}) OVER () AS cluster_id,
-                    id,
-                    geom
-                FROM images
-            ) subquery
-            GROUP BY cluster_id;
-        """
+        SELECT cluster_id, 
+               ST_X(ST_Centroid(ST_Collect(ST_SetSRID(geom, 4326)))) AS longitudine, 
+               ST_Y(ST_Centroid(ST_Collect(ST_SetSRID(geom, 4326)))) AS latitudine,
+               COUNT(*) AS size,
+               array_agg(id) AS foto_ids
+        FROM (
+            SELECT 
+                ST_ClusterKMeans(ST_SetSRID(geom, 4326), {k}) OVER () AS cluster_id,
+                id,
+                geom
+            FROM images
+        ) subquery
+        GROUP BY cluster_id;
+    """
+
     results = executeQuery(query)
     data_dict = [dict(zip(['id', 'longitudine', 'latitudine', 'size', 'imagesIds'], item)) for item in results]
 
