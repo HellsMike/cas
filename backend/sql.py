@@ -1,5 +1,6 @@
 import psycopg2
 import json
+import numpy as np
 
 srid=4326
 
@@ -124,6 +125,39 @@ def selectFixatedKMeans(k):
     data_json = json.dumps(data_dict, indent=4)
 
     return data_json
+
+#returns the number of images (int)
+def selectNumberImages():
+    #conto il numero di immagini da mettere come upper bound al numero di cluster
+    query = "SELECT COUNT(*) FROM images;"
+    result = executeQuery(query)
+    return result[0][0] 
+
+def automaticElbowMethod():
+    # Ottieni il numero massimo di cluster
+    max_k = selectNumberImages()
+    # Se hai solo un cluster disponibile, restituisci direttamente 1
+    if max_k == 1:
+        return selectFixatedKMeans(1)
+    # Inizializza una lista vuota per i valori di inerzia
+    inertia_values = []
+    
+    # Esegui K-Means per diversi valori di k e calcola l'inerzia
+    for k in range(1, max_k + 1):
+        data_json = selectFixatedKMeans(k)
+        clusters = json.loads(data_json)
+        # Calcola l'inerzia sommando le distanze quadrate delle immagini dai rispettivi centroidi
+        inertia = sum([cluster['size'] * cluster['longitudine']**2 + cluster['latitudine']**2 for cluster in clusters])
+        inertia_values.append(inertia)
+    
+    # Calcola la derivata seconda dell'inerzia
+    second_derivative = np.diff(np.diff(inertia_values))
+    
+    # Trova il punto di flessione (dove la derivata seconda cambia segno)
+    optimal_k = np.where(second_derivative > 0)[0][0] + 2
+    
+    return selectFixatedKMeans(optimal_k)
+
 
 def selectNImages(longitudine, latitudine, n):
     # Query spaziale delle n immagini più vicine

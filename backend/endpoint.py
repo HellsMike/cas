@@ -68,6 +68,10 @@ def getFixatedKMeans():
     print(data)
     return sql.selectFixatedKMeans(data['k'])
 
+@app.route('/getElbowKMeans', methods=['GET'])
+def getElbowKMeans():
+    return sql.automaticElbowMethod()
+
 # Crea una nuova collezione
 @app.route('/newCollection', methods=['POST'])
 def newCollection():
