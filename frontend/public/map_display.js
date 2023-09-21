@@ -267,9 +267,24 @@ function addGlobalMarkers() {
         data.forEach(item => {
             // Crea un nuovo marker per ogni elemento in data
             var marker = L.marker([item.latitudine, item.longitudine])
-                .bindPopup(item.nome_collezione)
-                .openPopup();
-
+            // Al click effettua la richiesta per ricevere l'immagine
+            marker.on('click', function() {
+                // Effettua la richiesta HTTP
+                fetch(backendEndpoint + '/getImage', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({id: item.id}),
+                })
+                .then(response => response.json())
+                .then(b64image => {
+                    // Crea un popup con l'immagine e il testo
+                    this.bindPopup("<img src='data:image/jpeg;base64," + b64image.base64image + 
+                    "' style='max-width: 100%; min-width: 150px; height: auto;' /><p>" + item.nome_collezione + 
+                    "</p>").openPopup();
+                });
+            });
             markers.push(marker); // Aggiungi il marker all'array
         });
 

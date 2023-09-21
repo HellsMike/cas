@@ -68,7 +68,7 @@ def selectNCollections(longitudine, latitudine, n):
 
 def selectAllMarker():
     query = f"""
-        SELECT ST_X(i.geom) AS longitude, ST_Y(i.geom) AS latitude, c.name AS collection_name
+        SELECT i.id, ST_X(i.geom) AS longitude, ST_Y(i.geom) AS latitude, c.name AS collection_name
         FROM images AS i
         JOIN collections AS c ON i.collection_id = c.id;
         """
@@ -76,7 +76,7 @@ def selectAllMarker():
     results = executeQuery(query)
     
     # Converti la lista di tuple in una lista di dizionari
-    data_dict = [dict(zip(['longitudine', 'latitudine', 'nome_collezione'], item)) for item in results]
+    data_dict = [dict(zip(['id', 'longitudine', 'latitudine', 'nome_collezione'], item)) for item in results]
 
     return data_dict
 
@@ -159,6 +159,20 @@ def automaticElbowMethod():
     
     return selectFixatedKMeans(optimal_k)
 
+def selectImage(id):
+    # Query spaziale delle n immagini più vicine
+    query = f"""
+        SELECT url
+        FROM images
+        WHERE images.id = '{id}'
+        """
+        
+    results = executeQuery(query)
+    
+    # Converti la lista di tuple in una lista di dizionari
+    data_dict = [dict(zip(['url'], item)) for item in results]
+
+    return data_dict
 
 def selectNImages(longitudine, latitudine, n):
     # Query spaziale delle n immagini più vicine

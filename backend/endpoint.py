@@ -37,7 +37,7 @@ def getImages():
         img = Image.open(image_buffer)
         img = img.convert("RGB")
         output_buffer = io.BytesIO()
-        img.save(output_buffer, format="JPEG", quality=70)  # Modifica il valore della qualità secondo le tue esigenze
+        img.save(output_buffer, format="JPEG", quality=70)
         
         # Codifica l'immagine compressa in base64
         compressed_image_data = output_buffer.getvalue()
@@ -45,6 +45,36 @@ def getImages():
 
     # Formatta la lista di dizionari in JSON
     data_json = json.dumps(images, indent=4)
+
+    return data_json
+
+# Fornisce l'immagine con l'id dato
+@app.route('/getImage', methods=['POST'])
+def getImage():
+    data = request.get_json()
+    print(data)
+    images = sql.selectImage(data['id'])
+
+    for image in images:
+        # Leggi i dati dell'immagine dal file
+        with open(image['url'], 'rb') as f:
+            image_data = f.read()
+
+        del image['url']
+
+        # Comprimi l'immagine con Pillow
+        image_buffer = io.BytesIO(image_data)
+        img = Image.open(image_buffer)
+        img = img.convert("RGB")
+        output_buffer = io.BytesIO()
+        img.save(output_buffer, format="JPEG", quality=70) 
+
+        # Codifica l'immagine compressa in base64
+        compressed_image_data = output_buffer.getvalue()
+        image['base64image'] = base64.b64encode(compressed_image_data).decode('utf-8')
+
+    # Formatta la lista di dizionari in JSON
+    data_json = json.dumps(image, indent=4)
 
     return data_json
 
