@@ -126,23 +126,24 @@ def selectFixatedKMeans(k):
 
     return data_json
 
-#returns the number of images (int)
+# Ritorna il numero massimo di immagini presenti nel db
 def selectNumberImages():
-    #conto il numero di immagini da mettere come upper bound al numero di cluster
+    # Conta il numero di immagini da mettere come upper bound al numero di cluster
     query = "SELECT COUNT(*) FROM images;"
     result = executeQuery(query)
+
     return result[0][0] 
 
 def automaticElbowMethod():
-    # Ottieni il numero massimo di cluster
+    # Ottiene il numero massimo di cluster
     max_k = selectNumberImages()
-    # Se hai solo un cluster disponibile, restituisci direttamente 1
+    # Se ha solo un cluster disponibile, restituisce direttamente 1
     if max_k == 1:
         return selectFixatedKMeans(1)
     # Inizializza una lista vuota per i valori di inerzia
     inertia_values = []
     
-    # Esegui K-Means per diversi valori di k e calcola l'inerzia
+    # Esegue K-Means per diversi valori di k e calcola l'inerzia
     for k in range(1, max_k + 1):
         data_json = selectFixatedKMeans(k)
         clusters = json.loads(data_json)

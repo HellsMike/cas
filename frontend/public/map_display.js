@@ -19,7 +19,9 @@ var polygonLayerBorderGroup = L.layerGroup(); // Gruppo layer per i bordi dei po
 var markers = []; // Array per tenere traccia dei marker
 var markerLayer; // Layer per i marker
 
-var soglia = 2; // Soglia per il cambio colorazione da giallo a verde
+var heatmapLayer = L.heatLayer();
+
+var soglia = 2; // Soglia per il cambio colorazione da giallo a verde nella colorazione a poligoni
 
 // Controlla l'opzione selezionata per i marker
 var markerRadios = document.querySelectorAll('input[type=radio][name="marker"]');
@@ -63,6 +65,7 @@ for (var i = 0; i < markerRadios.length; i++) {
                     // Aggiunge i marker dei centroidi
                     document.getElementById('n_cluster').disabled = false; 
                     document.getElementById('cluster_submit').disabled = false;
+                    // L'aggiunta dei marker è gestita dalla funzione chiamata dal bottone
 
                     break;
             }
@@ -80,7 +83,11 @@ for (var i = 0; i < colorRadios.length; i++) {
             switch(this.value) {
                 case 'none':
                     // Rimuove eventuali colorazioni presenti e ripristina solo i bordi
-                    mainMap.removeLayer(polygonLayerGroup)
+                    if (mainMap.hasLayer(polygonLayerGroup))
+                        mainMap.removeLayer(polygonLayerGroup)
+
+                    if (mainMap.hasLayer(heatmapLayer))
+                        mainMap.removeLayer(heatmapLayer)
 
                     if (!mainMap.hasLayer(polygonLayerBorderGroup))
                         polygonLayerBorderGroup.addTo(mainMap)
@@ -96,6 +103,9 @@ for (var i = 0; i < colorRadios.length; i++) {
                     if (mainMap.hasLayer(polygonLayerBorderGroup))
                         mainMap.removeLayer(polygonLayerBorderGroup)
 
+                    if (mainMap.hasLayer(heatmapLayer))
+                        mainMap.removeLayer(heatmapLayer)
+
                     polygonLayerGroup = L.layerGroup();
                     colorMap();
 
@@ -109,6 +119,7 @@ for (var i = 0; i < colorRadios.length; i++) {
                         mainMap.removeLayer(polygonLayerBorderGroup)
 
                     polygonLayerGroup = L.layerGroup();
+                    colorGlobalHeatmap();
 
                     break;
                 case 'local_heatmap':
@@ -431,4 +442,27 @@ function colorMap() {
         })
         .catch(error => console.error('Error:', error));
     }
+}
+
+// Crea la heatmap globale
+function colorGlobalHeatmap() {
+    fetch(backendEndpoint + '/getGlobalMarkers')
+    .then(response => response.json())
+    .then(data => {    
+        // Crea un array di punti per la heatmap
+        var heatmapPoints = [];
+        
+        data.forEach(item => {
+            // Calcola l'intensità proporzionale al numero di elementi
+            var intensity = 100;
+    
+            // Aggiungi ogni punto alla lista della heatmap con l'intensità calcolata
+            heatmapPoints.push([item.latitudine, item.longitudine, intensity]);
+        });
+    
+        // Crea la heatmap e aggiungila alla mappa
+        heatmapLayer = L.heatLayer(heatmapPoints)
+        heatmapLayer.addTo(mainMap);
+    })
+    .catch(error => console.error('Error:', error));
 }
