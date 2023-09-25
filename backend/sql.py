@@ -177,9 +177,10 @@ def selectImage(id):
 def selectNImages(longitudine, latitudine, n):
     # Query spaziale delle n immagini più vicine
     query = f"""
-        SELECT url, ST_X(geom) AS longitudine, ST_Y(geom) AS latitudine,
-        ST_DistanceSphere(ST_SetSRID(ST_MakePoint({longitudine}, {latitudine}), {srid}), geom) / 1000 AS distanza
-        FROM images
+        SELECT i.id, i.ST_X(i.geom) AS longitudine, i.ST_Y(i.geom) AS latitudine, c.name,
+        ST_DistanceSphere(ST_SetSRID(ST_MakePoint({longitudine}, {latitudine}), {srid}), i.geom) / 1000 AS distanza
+        FROM images AS i
+        JOIN collections AS c ON i.collection_id = c.id;
         ORDER BY distanza
         LIMIT {n}
         """
@@ -187,7 +188,7 @@ def selectNImages(longitudine, latitudine, n):
     results = executeQuery(query)
     
     # Converti la lista di tuple in una lista di dizionari
-    data_dict = [dict(zip(['url', 'longitudine', 'latitudine', 'distanza'], item)) for item in results]
+    data_dict = [dict(zip(['id', 'longitudine', 'latitudine', 'nome_collezione', 'distance'], item)) for item in results]
 
     return data_dict
 
