@@ -177,10 +177,10 @@ def selectImage(id):
 def selectNImages(longitudine, latitudine, n):
     # Query spaziale delle n immagini più vicine
     query = f"""
-        SELECT i.id, i.ST_X(i.geom) AS longitudine, i.ST_Y(i.geom) AS latitudine, c.name,
+        SELECT i.id, ST_X(i.geom) AS longitudine, ST_Y(i.geom) AS latitudine, c.name,
         ST_DistanceSphere(ST_SetSRID(ST_MakePoint({longitudine}, {latitudine}), {srid}), i.geom) / 1000 AS distanza
         FROM images AS i
-        JOIN collections AS c ON i.collection_id = c.id;
+        JOIN collections AS c ON i.collection_id = c.id
         ORDER BY distanza
         LIMIT {n}
         """
