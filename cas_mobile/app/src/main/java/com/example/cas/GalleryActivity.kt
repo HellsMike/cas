@@ -4,6 +4,7 @@ import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Base64
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -33,6 +34,8 @@ class GalleryActivity : AppCompatActivity() {
         }
 
         val imageView = findViewById<ImageView>(R.id.pic_view)
+        val description = findViewById<TextView>(R.id.description)
+        val picNumber = findViewById<TextView>(R.id.pic_number)
 
         imageGallery = getNPict(
             intent.getDoubleExtra("longitudine", 0.0),
@@ -44,12 +47,26 @@ class GalleryActivity : AppCompatActivity() {
         if (imageGallery.isNotEmpty()) {
             val image = imageGallery[currentImageIndex]
             val base64Image = getBase64Image(image.id)
-            println(base64Image.base64image)
             if (base64Image.base64image != "null") {
                 val imageBytes = Base64.decode(base64Image.base64image, Base64.DEFAULT)
                 val decodedImage = BitmapFactory.decodeByteArray(imageBytes, 0,
                     imageBytes.size)
                 imageView.setImageBitmap(decodedImage)
+                description.text = buildString {
+                    append(image.nome_collezione)
+                    append("\n Longitudine: ")
+                    append(image.longitudine)
+                    append("\n Latitudine: ")
+                    append(image.latitudine)
+                    append("\n Distanza dalla posizione attuale: ")
+                    append(image.distanza)
+                    append(" km")
+                }
+                picNumber.text = buildString {
+                    append(currentImageIndex + 1)
+                    append("/")
+                    append(imageGallery.size)
+                }
             }
         }
 
@@ -66,6 +83,21 @@ class GalleryActivity : AppCompatActivity() {
                     imageBytes.size
                 )
                 imageView.setImageBitmap(decodedImage)
+                description.text = buildString {
+                    append(image.nome_collezione)
+                    append("\n Longitudine: ")
+                    append(image.longitudine)
+                    append("\n Latitudine: ")
+                    append(image.latitudine)
+                    append("\n Distanza dalla posizione attuale: ")
+                    append(image.distanza)
+                    append(" km")
+                }
+                picNumber.text = buildString {
+                    append(currentImageIndex + 1)
+                    append("/")
+                    append(imageGallery.size)
+                }
             }
         }
     }
@@ -84,9 +116,6 @@ class GalleryActivity : AppCompatActivity() {
 
         if (fuelResponse.statusCode == 200) {
             val gson = Gson()
-            println(fuelResponse)
-            println(fuelResponse.body)
-            println(fuelResponse.body.length)
             return@runBlocking gson.fromJson<Array<Image>?>(
                 fuelResponse.body,
                 Array<Image>::class.java
@@ -101,15 +130,10 @@ class GalleryActivity : AppCompatActivity() {
             val jsonBody = JSONObject()
                 .put("id", id)
             val header = mapOf("Content-Type" to "application/json", "Connection" to "close")
-
-            println("KOTLIN MERDA")
             // Invio richiesta
             val fuelResponse = Fuel.post("$backendEndpoint/getImage", body = jsonBody.toString(),
                 headers = header)
 
-            println(fuelResponse)
-            println(fuelResponse.body)
-            println(fuelResponse.body.length)
             if (fuelResponse.statusCode == 200) {
                 val gson = Gson()
                 return@runBlocking gson.fromJson<Base64Image>(
@@ -120,8 +144,6 @@ class GalleryActivity : AppCompatActivity() {
 
             return@runBlocking Base64Image("null")
         } catch (e: ProtocolException) {
-            println("AAAAAAAAAAAAAAAAAAAAAAA")
-            println(e)
             return@runBlocking getBase64Image(id)
         }
     }
