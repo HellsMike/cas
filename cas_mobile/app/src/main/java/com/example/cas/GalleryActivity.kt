@@ -18,6 +18,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.ProtocolException
+import kotlin.math.roundToInt
 
 class GalleryActivity : AppCompatActivity() {
     private var currentImageIndex = 0
@@ -59,7 +60,7 @@ class GalleryActivity : AppCompatActivity() {
                     append("\n Latitudine: ")
                     append(image.latitudine)
                     append("\n Distanza dalla posizione attuale: ")
-                    append(image.distanza)
+                    append(image.distanza.roundToInt())
                     append(" km")
                 }
                 picNumber.text = buildString {
@@ -90,7 +91,7 @@ class GalleryActivity : AppCompatActivity() {
                     append("\n Latitudine: ")
                     append(image.latitudine)
                     append("\n Distanza dalla posizione attuale: ")
-                    append(image.distanza)
+                    append(image.distanza.roundToInt())
                     append(" km")
                 }
                 picNumber.text = buildString {
