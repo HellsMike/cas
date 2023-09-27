@@ -3,117 +3,131 @@ package com.example.cas
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Base64
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.Button
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import fuel.Fuel
 import fuel.post
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import java.net.ProtocolException
 
 class GalleryActivity : AppCompatActivity() {
-    private lateinit var recyclerView: RecyclerView
-    private lateinit var adapter: RecyclerView.Adapter<*>
-    private lateinit var layoutManager: RecyclerView.LayoutManager
+    private var currentImageIndex = 0
+    private lateinit var imageGallery: List<Image>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.gallery_view)
-
-        recyclerView = findViewById(R.id.recycler_view)
-        recyclerView.setHasFixedSize(true)
-
-        layoutManager = LinearLayoutManager(this)
-        recyclerView.layoutManager = layoutManager
-
-        lifecycleScope.launch {
-            val imageGallery = getNPhoto(
-                intent.getDoubleExtra("longitudine", 0.0),
-                intent.getDoubleExtra("latitudine", 0.0),
-                intent.getIntExtra("n", 10))
-
-            adapter = GalleryAdapter(imageGallery)
-
-            recyclerView.adapter = adapter
-        }
+        setContentView(R.layout.gallery_activity)
 
         // Bottone per chiudere l'intent
         val backButton = findViewById<FloatingActionButton>(R.id.back_btn)
         backButton.setOnClickListener {
             finish()
         }
+
+        val imageView = findViewById<ImageView>(R.id.pic_view)
+
+        imageGallery = getNPict(
+            intent.getDoubleExtra("longitudine", 0.0),
+            intent.getDoubleExtra("latitudine", 0.0),
+            intent.getIntExtra("n", 10)
+        )
+
+        println(imageGallery[0])
+        if (imageGallery.isNotEmpty()) {
+            val image = imageGallery[currentImageIndex]
+            val base64Image = getBase64Image(image.id)
+            println(base64Image.base64image)
+            if (base64Image.base64image != "null") {
+                val imageBytes = Base64.decode(base64Image.base64image, Base64.DEFAULT)
+                val decodedImage = BitmapFactory.decodeByteArray(imageBytes, 0,
+                    imageBytes.size)
+                imageView.setImageBitmap(decodedImage)
+            }
+        }
+
+        imageView.setOnClickListener {
+            /* Incrementa il contatore per la visualizzazione immagini e lo resetta se arrivato
+            all'ultima */
+            currentImageIndex = (currentImageIndex + 1) % imageGallery.size
+            val image = imageGallery[currentImageIndex]
+            val base64Image = getBase64Image(image.id)
+            if (base64Image.base64image != "null") {
+                val imageBytes = Base64.decode(base64Image.base64image, Base64.DEFAULT)
+                val decodedImage = BitmapFactory.decodeByteArray(
+                    imageBytes, 0,
+                    imageBytes.size
+                )
+                imageView.setImageBitmap(decodedImage)
+            }
+        }
     }
 
-    private suspend fun getNPhoto(longitudine: Double, latitudine: Double, n: Int) : List<Image> {
-        return withContext(Dispatchers.IO) {
+    private fun getNPict(longitudine: Double, latitudine: Double, n: Int) :
+            List<Image> = runBlocking {
+        // Formattazione dei dati in JSON
+        val jsonBody = JSONObject()
+            .put("longitudine", longitudine)
+            .put("latitudine", latitudine)
+            .put("n", n)
+        val header = mapOf("Content-Type" to "application/json", "Connection" to "close")
+        // Invio richiesta
+        val fuelResponse = Fuel.post("$backendEndpoint/getImages", body = jsonBody.toString(),
+            headers = header)
+
+        if (fuelResponse.statusCode == 200) {
+            val gson = Gson()
+            println(fuelResponse)
+            println(fuelResponse.body)
+            println(fuelResponse.body.length)
+            return@runBlocking gson.fromJson<Array<Image>?>(
+                fuelResponse.body,
+                Array<Image>::class.java
+            ).toList<Image>()
+        }
+        return@runBlocking emptyList()
+    }
+
+    private fun getBase64Image(id: Int) : Base64Image = runBlocking {
+        try {
             // Formattazione dei dati in JSON
             val jsonBody = JSONObject()
-                .put("longitudine", longitudine)
-                .put("latitudine", latitudine)
-                .put("n", n)
-            val header = mapOf("Content-Type" to "application/json")
+                .put("id", id)
+            val header = mapOf("Content-Type" to "application/json", "Connection" to "close")
 
+            println("KOTLIN MERDA")
             // Invio richiesta
-            val fuelResponse = Fuel.post("$backendEndpoint/getImages", body = jsonBody.toString(),
+            val fuelResponse = Fuel.post("$backendEndpoint/getImage", body = jsonBody.toString(),
                 headers = header)
 
+            println(fuelResponse)
+            println(fuelResponse.body)
+            println(fuelResponse.body.length)
             if (fuelResponse.statusCode == 200) {
                 val gson = Gson()
-                return@withContext gson.fromJson<Array<Image>?>(
+                return@runBlocking gson.fromJson<Base64Image>(
                     fuelResponse.body,
-                    Array<Image>::class.java
-                ).toList<Image>()
+                    Base64Image::class.java
+                )
             }
-            return@withContext emptyList()
+
+            return@runBlocking Base64Image("null")
+        } catch (e: ProtocolException) {
+            println("AAAAAAAAAAAAAAAAAAAAAAA")
+            println(e)
+            return@runBlocking getBase64Image(id)
         }
     }
 }
 
-data class Image(val longitudine: Double, val latitudine: Double, val distanza: Double?,
-                 val base64image: String)
+data class Image(val id: Int, val longitudine: Double, val latitudine: Double,
+                 val nome_collezione: String, val distanza: Double)
 
-class GalleryAdapter(private val imageData: List<Image>) :
-    RecyclerView.Adapter<GalleryAdapter.ViewHolder>() {
-
-    class ViewHolder(val view: View, val imageView: ImageView, val textView: TextView) :
-        RecyclerView.ViewHolder(view)
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.gallery_item, parent,
-            false)
-        val imageView = view.findViewById<ImageView>(R.id.image_view)
-        val textView = view.findViewById<TextView>(R.id.text_view)
-        return ViewHolder(view, imageView, textView)
-    }
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val image = imageData[position]
-        val description = "Longitudine: " + image.longitudine.toString() + " Latitudine: " +
-                image.latitudine.toString()
-        holder.textView.text = description
-
-        GlobalScope.launch(Dispatchers.IO) {
-            val imageBytes = Base64.decode(image.base64image, Base64.DEFAULT)
-            val decodedImage = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-            withContext(Dispatchers.Main) {
-                holder.imageView.setImageBitmap(decodedImage)
-            }
-        }
-    }
-
-    override fun getItemCount() = imageData.size
-}
+data class Base64Image(val base64image: String)

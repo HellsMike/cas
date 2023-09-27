@@ -188,7 +188,7 @@ def selectNImages(longitudine, latitudine, n):
     results = executeQuery(query)
     
     # Converti la lista di tuple in una lista di dizionari
-    data_dict = [dict(zip(['id', 'longitudine', 'latitudine', 'nome_collezione', 'distance'], item)) for item in results]
+    data_dict = [dict(zip(['id', 'longitudine', 'latitudine', 'nome_collezione', 'distanza'], item)) for item in results]
 
     return data_dict
 

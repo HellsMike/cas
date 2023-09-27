@@ -6,7 +6,6 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
@@ -14,7 +13,6 @@ import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.ArrayMap
 import android.util.Base64
 import android.widget.Button
 import android.widget.EditText
@@ -23,12 +21,10 @@ import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.google.gson.Gson
 import fuel.Fuel
 import fuel.post
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
-import java.io.Serializable
 
 // Indirizzo delle altre componenti
 const val backendEndpoint = "http://10.0.2.2:8000"
@@ -121,7 +117,7 @@ class MainActivity : AppCompatActivity() {
         // Bottone per la visualizzazione delle n foto più vicine
         val galleryButton = findViewById<Button>(R.id.gallery_btn)
         galleryButton.setOnClickListener {
-            // Crea un Intent per avviare la GalleryActivity
+            // Crea un Intent per avviare la com.example.cas.GalleryActivity
             val intent = Intent(this, GalleryActivity::class.java)
             intent.putExtra("n", nGallery.text.toString().toInt())
             intent.putExtra("longitudine", longitude)
