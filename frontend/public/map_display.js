@@ -23,6 +23,12 @@ var heatmapLayer = L.heatLayer();
 
 var soglia = 2; // Soglia per il cambio colorazione da giallo a verde nella colorazione a poligoni
 
+var collectionList = []; // Lista collezioni esistenti
+
+var selectedId; // Id della collezione selezionata per il caricamentoo di file
+
+setCollectionAutocomplete(); 
+
 // Controlla l'opzione selezionata per i marker
 var markerRadios = document.querySelectorAll('input[type=radio][name="marker"]');
 
@@ -138,6 +144,30 @@ for (var i = 0; i < colorRadios.length; i++) {
     });
 }
 
+// Ottiene le collezioni esistenti e le imposta nell'autocomplete
+function setCollectionAutocomplete() {
+    fetch(backendEndpoint + '/getAllCollections')
+    .then(response => response.json())
+    .then(data => {
+        collectionList = data;
+        // Filtra la ricerca delle collezioni a tempo di utilizzo
+        $( "#collection" ).autocomplete({
+            source: collectionList.map(item => ({label: item.nome, value: item.id})),
+            // Fa aprire il menù verso l'alto
+            position: { my : "left bottom", at: "left top" },
+            select: function(event, ui) {
+                console.log("ID selezionato: " + ui.item.value);
+                // Memorizza l'ID nell variabile globale
+                selectedId = ui.item.value;
+                event.preventDefault();
+                // Imposta il campo di input sul nome dell'elemento selezionato
+                $(this).val(ui.item.label);
+            }
+        });  
+    })
+    .catch(error => console.error('Error:', error));
+}
+
 // Funzione per gestire il caricamento del file GeoJSON
 function handleGeoJsonSelect(event) {
     const file = event.target.files[0];
@@ -193,26 +223,6 @@ function handleGeoJsonSelect(event) {
     }
 }
 
-// TODO Lista di collezioni fittizia, da sostituire con la richiesta delle collezioni al backend
-var data = [
-    {id: 1, nome: 'Nome1', latitudine: 'Lat1', longitudine: 'Long1'},
-    {id: 2, nome: 'Nome2', latitudine: 'Lat2', longitudine: 'Long2'},
-    // Aggiungi altri elementi qui
-];
-
-// Filtra la ricerca delle collezioni a tempo di utilizzo
-$( "#collection" ).autocomplete({
-    source: data.map(item => item.nome),
-    select: function(event, ui) {
-        var selected = data.find(item => item.nome === ui.item.value);
-        // Inserisce i dati di lat e long legati alla collezione
-        if (selected) {
-            $('#latitude').val(selected.latitudine);
-            $('#longitude').val(selected.longitudine);
-        }
-    }
-});
-
 // Cambia il tipo di input per le foto
 function toggleInput(value) {
     document.getElementById('fileInput').style.display = value === 'file' ? 'block' : 'none';
@@ -230,7 +240,6 @@ function uploadFiles() {
     var input = document.getElementById(document.getElementById('uploadType').value === 'file' ? 'fileInput' : 'directoryInput');
     var latitude = document.getElementById('latitude').value;
     var longitude = document.getElementById('longitude').value;
-    var collection = document.getElementById('collection').value;
   
     if (!isValidCoordinate(latitude, -90, 90)) {
       alert('Inserisci una latitudine valida compresa tra -90 e 90.');
@@ -248,16 +257,36 @@ function uploadFiles() {
       var validImageTypes = ['image/gif', 'image/jpeg', 'image/png'];
   
       if (validImageTypes.includes(fileType)) {
-        console.log('Nome del file: ' + file.name);
-        console.log('Latitudine: ' + latitude);
-        console.log('Longitudine: ' + longitude);
-        // TODO controlla se la collezione esiste nella lista delle collezioni, altrimenti richiesta per crearla
-        // Qui puoi aggiungere il codice per caricare il file e salvare i dati di geotag
+        // Estrae la codifica in base64 dell'immagine
+        let reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onloadend = function() {
+            let base64Image = reader.result.split(',')[1];
+            let data = {
+                latitudine: latitude,
+                longitudine: longitude,
+                base64image: base64Image,
+                collectionId: selectedId.toString()
+            };
+            
+            // Effettua la richiesta per l'inserimento dell'immagine
+            fetch(backendEndpoint + '/insertPhoto', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
       } else {
         console.log('Il file ' + file.name + ' non è un\'immagine e sarà ignorato.');
       }
     }
-}  
+}
 
 // Funzione per aggiungere marker globali
 function addGlobalMarkers() {

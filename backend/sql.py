@@ -30,13 +30,26 @@ def executeQuery(query):
     
     return results
 
-# Seleziona una collezione dato il nome
+# Seleziona una collezione dato l'id
 def selectCollection(id):
     query = f"""
         SELECT id, name
         FROM collections
         WHERE id = '{id}';
         """
+    results = executeQuery(query)
+    
+    # Converti la lista di tuple in una lista di dizionari
+    data_dict = [dict(zip(['id', 'nome'], item)) for item in results]
+
+    # Formatta la lista di dizionari in JSON
+    data_json = json.dumps(data_dict, indent=4)
+
+    return data_json
+
+# Seleziona tutte le collezioni
+def selectAllCollections():
+    query = "SELECT * FROM collections;"
     results = executeQuery(query)
     
     # Converti la lista di tuple in una lista di dizionari
@@ -57,6 +70,7 @@ def selectNCollections(longitudine, latitudine, n):
             ST_DistanceSphere(ST_SetSRID(ST_MakePoint('{longitudine}', '{latitudine}'), '{srid}'), i.geom) AS distanza
             FROM collections AS c
             JOIN images AS i ON c.id = i.collection_id
+            ORDER BY c.id, distanza
         ) AS sub
         ON c.id = sub.id
         ORDER BY sub.distanza

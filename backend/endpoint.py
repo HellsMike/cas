@@ -12,14 +12,19 @@ app = Flask(__name__)
 CORS(app)
 
 # Fornisce le N collezioni più vicine alle coordinate fornite
-@app.route('/getCollections', methods=['POST'])
-def getCollection():
+@app.route('/getCollections', methods = ['POST'])
+def getNCollections():
     data = request.get_json()
     print(data)
     return sql.selectNCollections(data['longitudine'], data['latitudine'], data['n'])
 
+# Fornisce tutte le collezioni esistenti
+@app.route('/getAllCollections', methods = ['GET'])
+def getAllCollections():
+    return sql.selectAllCollections()
+
 # Fornisce le N immagini più vicine alle coordinate fornite
-@app.route('/getImages', methods=['POST'])
+@app.route('/getImages', methods = ['POST'])
 def getImages():
     data = request.get_json()
     print(data)
@@ -31,7 +36,7 @@ def getImages():
     return data_json
 
 # Fornisce l'immagine con l'id dato
-@app.route('/getImage', methods=['POST'])
+@app.route('/getImage', methods = ['POST'])
 def getImage():
     data = request.get_json()
     print(data)
@@ -61,38 +66,38 @@ def getImage():
     return data_json
 
 # Fornisce i dati relativi ai marker globali
-@app.route('/getGlobalMarkers', methods=['GET'])
+@app.route('/getGlobalMarkers', methods = ['GET'])
 def getGlobalMarker():
     return sql.selectAllMarker()
 
 # Fornisce i dati relativi ai marker locali
-@app.route('/getLocalMarkers', methods=['POST'])
-def getLocalMarker():
+@app.route('/getLocalMarkers', methods = ['POST'])
+def getLocalMarker(): 
     data = request.get_json()
     # Estrae la geometria da ciascuna feature
     geometries = [feature['geometry'] for feature in data['features']]
     return sql.selectMarkersFromGeoJSON(geometries)
 
 #Selezione di K-Means con K fissato
-@app.route('/getKMeansFixated', methods=['POST'])
+@app.route('/getKMeansFixated', methods = ['POST'])
 def getFixatedKMeans():
     data = request.get_json()
     print(data)
     return sql.selectFixatedKMeans(data['k'])
 
-@app.route('/getElbowKMeans', methods=['GET'])
+@app.route('/getElbowKMeans', methods = ['GET'])
 def getElbowKMeans():
     return sql.automaticElbowMethod()
 
 # Crea una nuova collezione
-@app.route('/newCollection', methods=['POST'])
+@app.route('/newCollection', methods = ['POST'])
 def newCollection():
     data = request.get_json()
     print(data)
     return sql.insertCollection(data['nome'])
 
 # Inserisce la foto nel database
-@app.route('/insertPhoto', methods=['POST'])
+@app.route('/insertPhoto', methods = ['POST'])
 def insertPhoto():
     data = request.get_json()
     imgdata = base64.b64decode(data['base64image']) 
@@ -113,4 +118,4 @@ def insertPhoto():
     sql.insertImage(file_path, data['collectionId'], data['longitudine'], data['latitudine'])
     return '', 204
 
-app.run(host='localhost', port=8000)
+app.run(host = 'localhost', port = 8000)

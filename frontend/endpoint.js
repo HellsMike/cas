@@ -19,7 +19,6 @@ const port = 8001;
 
 // Definisce l'endpoint per la pagina principale
 app.get('/', (req, res) => {
-  // Invia al client la vista index.html con i valori name e age
   res.render('homepage');
 });
 
