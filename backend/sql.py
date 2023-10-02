@@ -210,6 +210,21 @@ def selectNImages(longitudine, latitudine, n):
 
     return data_dict
 
+# Query spaziale pper le immagini sul punto fornito
+def selectImagesByPosition(longitudine, latitudine):
+    query = f"""
+        SELECT url, c.name
+        FROM images AS i
+        JOIN collections AS c ON i.collection_id = c.id
+        WHERE ST_X(i.geom) = {longitudine} AND ST_Y(i.geom) = {latitudine}
+        """
+    results = executeQuery(query)
+
+    # Converti la lista di tuple in una lista di dizionari
+    data_dict = [dict(zip(['url', 'nome_collezione'], item)) for item in results]
+
+    return data_dict
+
 # Query per l'inserimento di una nuova collection
 def insertCollection(name):
     query = f"INSERT INTO collections (name) VALUES ('{name}') RETURNING id;"
