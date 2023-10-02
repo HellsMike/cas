@@ -60,7 +60,7 @@ class GalleryActivity : AppCompatActivity() {
                     append("\n Latitudine: ")
                     append(image.latitudine)
                     append("\n Distanza dalla posizione attuale: ")
-                    append(image.distanza.roundToInt())
+                    append((image.distanza / 1000).roundToInt())
                     append(" km")
                 }
                 picNumber.text = buildString {

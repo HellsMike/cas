@@ -2,7 +2,7 @@ import psycopg2
 import json
 import numpy as np
 
-srid=4326
+srid = 4326
 
 def executeQuery(query):    
     # Connessione al database
@@ -30,49 +30,56 @@ def executeQuery(query):
     
     return results
 
-def selectCollection(nome, longitudine, latitudine):
+# Seleziona una collezione dato il nome
+def selectCollection(id):
     query = f"""
-        SELECT id, name, ST_X(geom), ST_Y(geom)
+        SELECT id, name
         FROM collections
-        WHERE name = '{nome}' AND ST_X(geom) = {longitudine} AND ST_Y(geom) = {latitudine};
+        WHERE id = '{id}';
         """
     results = executeQuery(query)
     
     # Converti la lista di tuple in una lista di dizionari
-    data_dict = [dict(zip(['id', 'nome', 'longitudine', 'latitudine'], item)) for item in results]
+    data_dict = [dict(zip(['id', 'nome'], item)) for item in results]
 
     # Formatta la lista di dizionari in JSON
     data_json = json.dumps(data_dict, indent=4)
 
     return data_json
 
+# Query spaziale delle n collezioni con le foto più vicine
 def selectNCollections(longitudine, latitudine, n):
-# Query spaziale delle n collezioni più vicine
     query = f"""
-        SELECT id, name, ST_X(geom) AS longitudine, ST_Y(geom) AS latitudine,
-        ST_DistanceSphere(ST_SetSRID(ST_MakePoint({longitudine}, {latitudine}), {srid}), geom) / 1000 AS distanza
-        FROM collections
-        ORDER BY distanza
-        LIMIT {n}
+        SELECT c.id, c.name, sub.distanza
+        FROM collections AS c
+        JOIN (
+            SELECT DISTINCT ON (c.id) c.id,
+            ST_DistanceSphere(ST_SetSRID(ST_MakePoint('{longitudine}', '{latitudine}'), '{srid}'), i.geom) AS distanza
+            FROM collections AS c
+            JOIN images AS i ON c.id = i.collection_id
+        ) AS sub
+        ON c.id = sub.id
+        ORDER BY sub.distanza
+        LIMIT {n};
         """
     results = executeQuery(query)
 
     
     # Converti la lista di tuple in una lista di dizionari
-    data_dict = [dict(zip(['id', 'nome', 'longitudine', 'latitudine', 'distanza'], item)) for item in results]
+    data_dict = [dict(zip(['id', 'nome', 'distanza'], item)) for item in results]
 
     # Formatta la lista di dizionari in JSON
     data_json = json.dumps(data_dict, indent=4)
 
     return data_json
 
+# Ritorna una lista di marker senza filtro spaziale
 def selectAllMarker():
     query = f"""
         SELECT i.id, ST_X(i.geom) AS longitude, ST_Y(i.geom) AS latitude, c.name AS collection_name
         FROM images AS i
         JOIN collections AS c ON i.collection_id = c.id;
         """
-        
     results = executeQuery(query)
     
     # Converti la lista di tuple in una lista di dizionari
@@ -80,6 +87,7 @@ def selectAllMarker():
 
     return data_dict
 
+# Ritorna una lista di marker all'interno di geojson
 def selectMarkersFromGeoJSON(geometries):
     results = []
     for geometry in geometries:
@@ -90,7 +98,6 @@ def selectMarkersFromGeoJSON(geometries):
             JOIN collections AS c ON i.collection_id = c.id
             WHERE ST_intersects(ST_SetSRID(i.geom, 4326), (SELECT ST_SetSRID(ST_GeomFromGeoJSON ('{geometry_json}'), 4326) AS geom));
             """
-        
         result = executeQuery(query)
         if result:
             # Converti la lista di tuple in una lista di dizionari
@@ -99,7 +106,7 @@ def selectMarkersFromGeoJSON(geometries):
 
     return results
 
-#Ritorna, con k fissato, id del cluster, longitudine e latitudine del centroide, e dimensione del cluster
+# Ritorna, con k fissato, id del cluster, longitudine e latitudine del centroide, e dimensione del cluster
 def selectFixatedKMeans(k):
     results = []
     query = f"""
@@ -117,7 +124,6 @@ def selectFixatedKMeans(k):
         ) subquery
         GROUP BY cluster_id;
     """
-
     results = executeQuery(query)
     data_dict = [dict(zip(['id', 'longitudine', 'latitudine', 'size', 'imagesIds'], item)) for item in results]
 
@@ -159,14 +165,13 @@ def automaticElbowMethod():
     
     return selectFixatedKMeans(optimal_k)
 
+# Query per la selezione di un'immagine dato il suo id
 def selectImage(id):
-    # Query spaziale delle n immagini più vicine
     query = f"""
         SELECT url
         FROM images
         WHERE images.id = '{id}'
-        """
-        
+        """    
     results = executeQuery(query)
     
     # Converti la lista di tuple in una lista di dizionari
@@ -174,17 +179,16 @@ def selectImage(id):
 
     return data_dict
 
+# Query spaziale delle n immagini più vicine
 def selectNImages(longitudine, latitudine, n):
-    # Query spaziale delle n immagini più vicine
     query = f"""
         SELECT i.id, ST_X(i.geom) AS longitudine, ST_Y(i.geom) AS latitudine, c.name,
-        ST_DistanceSphere(ST_SetSRID(ST_MakePoint({longitudine}, {latitudine}), {srid}), i.geom) / 1000 AS distanza
+        ST_DistanceSphere(ST_SetSRID(ST_MakePoint({longitudine}, {latitudine}), {srid}), i.geom) AS distanza
         FROM images AS i
         JOIN collections AS c ON i.collection_id = c.id
         ORDER BY distanza
         LIMIT {n}
         """
-        
     results = executeQuery(query)
     
     # Converti la lista di tuple in una lista di dizionari
@@ -192,15 +196,15 @@ def selectNImages(longitudine, latitudine, n):
 
     return data_dict
 
-def insertCollection(name, latitude, longitude):
-    # Query per l'inserimento di una nuova collection
-    query = f"INSERT INTO collections (name, geom) VALUES ('{name}', ST_GeomFromText('SRID={srid};POINT({longitude} {latitude})'));"
-    executeQuery(query)
+# Query per l'inserimento di una nuova collection
+def insertCollection(name):
+    query = f"INSERT INTO collections (name) VALUES ('{name}') RETURNING id;"
+    results = executeQuery(query)
 
-    return selectCollection(name, longitude, latitude)
+    return selectCollection(results[0][0])
     
+# Query per l'inserimento di una nuova immagine
 def insertImage(url, collection_id, longitude, latitude):
-    # Query per l'inserimento di una nuova immagine
     query = f"INSERT INTO images (url, geom, collection_id) VALUES ('{url}', ST_GeomFromText('SRID={srid};POINT({longitude} {latitude})'), '{collection_id}');"
     executeQuery(query)
 
@@ -209,11 +213,10 @@ def createCollectionTable():
     query = """
         CREATE TABLE collections (
             id SERIAL PRIMARY KEY,
-            name VARCHAR(255),
-            geom GEOMETRY(Point)
+            name VARCHAR(255)
         );
         """
-    executeQuery(query);
+    executeQuery(query)
 
 # Crea tabella delle immagini
 def createImageTable():
@@ -226,4 +229,4 @@ def createImageTable():
             collection_id INTEGER REFERENCES collections(id)
         );
         """
-    executeQuery(query);
+    executeQuery(query)

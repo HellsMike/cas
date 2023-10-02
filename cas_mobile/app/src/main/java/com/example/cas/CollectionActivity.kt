@@ -18,6 +18,7 @@ import fuel.post
 import kotlinx.coroutines.runBlocking
 import com.google.gson.Gson
 import org.json.JSONObject
+import kotlin.math.roundToInt
 
 class CollectionActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,8 +55,7 @@ class CollectionActivity : AppCompatActivity() {
 
         // Crea una nuova collection e la ritorna l'id alla Main Activity
         addButton.setOnClickListener {
-            val collection = newCollection(longitudine, latitudine,
-                newCollectionName.text.toString())[0]
+            val collection = newCollection(newCollectionName.text.toString())[0]
             val intent = Intent(this, MainActivity::class.java)
             intent.putExtra("result", collection.id.toString())
             setResult(Activity.RESULT_OK, intent)
@@ -88,13 +88,11 @@ class CollectionActivity : AppCompatActivity() {
     }
 
     // Richiesta al backend per la creazione di una nuova collezione
-    private fun newCollection(longitudine: Double, latitudine: Double, nome: String) :
+    private fun newCollection(nome: String) :
             List<Collection> = runBlocking {
         // Formattazione dei dati in JSON
         val jsonBody = JSONObject()
             .put("nome", nome)
-            .put("longitudine", longitudine)
-            .put("latitudine", latitudine)
         val header = mapOf("Content-Type" to "application/json")
 
         // Invio richiesta
@@ -112,8 +110,7 @@ class CollectionActivity : AppCompatActivity() {
     }
 }
 
-data class Collection(val id: Int, val nome: String, val longitudine: Double,
-                      val latitudine: Double, val distanza: Double?)
+data class Collection(val id: Int, val nome: String, val distanza: Double?)
 
 // Adapter per la ListView
 class CollectionAdapter(context: Context, private val collections: List<Collection>) :
@@ -127,9 +124,9 @@ class CollectionAdapter(context: Context, private val collections: List<Collecti
             parent, false)
 
         // Imposta i valori delle viste
-        view.findViewById<TextView>(R.id.nome).text = collection!!.nome
-        view.findViewById<TextView>(R.id.longitudine).text = "Lon: " + collection.longitudine.toString()
-        view.findViewById<TextView>(R.id.latitudine).text = "Lat: " + collection.latitudine.toString()
+        val distanzaText = "Distanza: ${collection!!.distanza?.roundToInt()} m"
+        view.findViewById<TextView>(R.id.nome).text = collection.nome
+        view.findViewById<TextView>(R.id.distanza).text = distanzaText
 
         return view
     }

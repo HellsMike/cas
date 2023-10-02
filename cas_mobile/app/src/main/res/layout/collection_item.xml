@@ -11,13 +11,7 @@
         android:textSize="18sp" />
 
     <TextView
-        android:id="@+id/longitudine"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="14sp" />
-
-    <TextView
-        android:id="@+id/latitudine"
+        android:id="@+id/distanza"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="14sp" />

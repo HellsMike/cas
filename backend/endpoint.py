@@ -89,7 +89,7 @@ def getElbowKMeans():
 def newCollection():
     data = request.get_json()
     print(data)
-    return sql.insertCollection(data['nome'], data['latitudine'], data['longitudine'])
+    return sql.insertCollection(data['nome'])
 
 # Inserisce la foto nel database
 @app.route('/insertPhoto', methods=['POST'])
