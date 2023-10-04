@@ -99,7 +99,7 @@ def selectAllMarker():
     # Converti la lista di tuple in una lista di dizionari
     data_dict = [dict(zip(['id', 'longitudine', 'latitudine', 'nome_collezione'], item)) for item in results]
 
-    return data_dict
+    return json.dumps(data_dict, indent=4)
 
 # Ritorna una lista di marker all'interno di geojson
 def selectMarkersFromGeoJSON(geometries):
@@ -118,7 +118,7 @@ def selectMarkersFromGeoJSON(geometries):
             for item in result:
                 results.append(dict(zip(['longitudine', 'latitudine', 'nome_collezione'], item)))
 
-    return results
+    return json.dumps(results, indent=4)
 
 # Ritorna, con k fissato, id del cluster, longitudine e latitudine del centroide, e dimensione del cluster
 def selectFixatedKMeans(k):

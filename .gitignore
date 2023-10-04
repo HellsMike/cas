@@ -1,3 +1,5 @@
 images/
 .DS_Store
 *.pyc
+frontend/node_modules/
+frontend/package-lock.json
