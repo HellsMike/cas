@@ -184,6 +184,9 @@ function handleGeoJsonSelect(event) {
                 if (mainMap.hasLayer(polygonLayerBorderGroup))
                     mainMap.removeLayer(polygonLayerBorderGroup)
 
+                if (mainMap.hasLayer(heatmapLayer))
+                    mainMap.removeLayer(heatmapLayer)
+
                 polygonLayerBorderGroup = L.layerGroup();
 
                 // Rimuove eventuali marker presenti sulla mappa

@@ -42,10 +42,7 @@ def selectCollection(id):
     # Converti la lista di tuple in una lista di dizionari
     data_dict = [dict(zip(['id', 'nome'], item)) for item in results]
 
-    # Formatta la lista di dizionari in JSON
-    data_json = json.dumps(data_dict, indent=4)
-
-    return data_json
+    return data_dict
 
 # Seleziona tutte le collezioni
 def selectAllCollections():
@@ -55,10 +52,7 @@ def selectAllCollections():
     # Converti la lista di tuple in una lista di dizionari
     data_dict = [dict(zip(['id', 'nome'], item)) for item in results]
 
-    # Formatta la lista di dizionari in JSON
-    data_json = json.dumps(data_dict, indent=4)
-
-    return data_json
+    return data_dict
 
 # Query spaziale delle n collezioni con le foto più vicine
 def selectNCollections(longitudine, latitudine, n):
@@ -82,10 +76,7 @@ def selectNCollections(longitudine, latitudine, n):
     # Converti la lista di tuple in una lista di dizionari
     data_dict = [dict(zip(['id', 'nome', 'distanza'], item)) for item in results]
 
-    # Formatta la lista di dizionari in JSON
-    data_json = json.dumps(data_dict, indent=4)
-
-    return data_json
+    return data_dict
 
 # Ritorna una lista di marker senza filtro spaziale
 def selectAllMarker():
@@ -99,7 +90,7 @@ def selectAllMarker():
     # Converti la lista di tuple in una lista di dizionari
     data_dict = [dict(zip(['id', 'longitudine', 'latitudine', 'nome_collezione'], item)) for item in results]
 
-    return json.dumps(data_dict, indent=4)
+    return data_dict
 
 # Ritorna una lista di marker all'interno di geojson
 def selectMarkersFromGeoJSON(geometries):
@@ -118,7 +109,7 @@ def selectMarkersFromGeoJSON(geometries):
             for item in result:
                 results.append(dict(zip(['longitudine', 'latitudine', 'nome_collezione'], item)))
 
-    return json.dumps(results, indent=4)
+    return results
 
 # Ritorna, con k fissato, id del cluster, longitudine e latitudine del centroide, e dimensione del cluster
 def selectFixatedKMeans(k):
@@ -141,10 +132,7 @@ def selectFixatedKMeans(k):
     results = executeQuery(query)
     data_dict = [dict(zip(['id', 'longitudine', 'latitudine', 'size', 'imagesIds'], item)) for item in results]
 
-    # Formatta la lista di dizionari in JSON
-    data_json = json.dumps(data_dict, indent=4)
-
-    return data_json
+    return data_dict
 
 # Ritorna il numero massimo di immagini presenti nel db
 def selectNumberImages():

@@ -16,22 +16,32 @@ CORS(app)
 def getNCollections():
     data = request.get_json()
     print(data)
-    return sql.selectNCollections(data['longitudine'], data['latitudine'], data['n'])
+    data_dict = sql.selectNCollections(data['longitudine'], data['latitudine'], data['n'])
+    
+    # Formatta la lista di dizionari in JSON
+    data_json = json.dumps(data_dict, indent=4)
+
+    return data_json
 
 # Fornisce tutte le collezioni esistenti
 @app.route('/getAllCollections', methods = ['GET'])
 def getAllCollections():
-    return sql.selectAllCollections()
+    data_dict = sql.selectAllCollections()
+
+    # Formatta la lista di dizionari in JSON
+    data_json = json.dumps(data_dict, indent=4)
+
+    return data_json
 
 # Fornisce le N immagini più vicine alle coordinate fornite
 @app.route('/getImages', methods = ['POST'])
 def getImages():
     data = request.get_json()
     print(data)
-    images = sql.selectNImages(data['longitudine'], data['latitudine'], data['n'])
-
+    data_dict = sql.selectNImages(data['longitudine'], data['latitudine'], data['n'])
+    
     # Formatta la lista di dizionari in JSON
-    data_json = json.dumps(images, indent=4)
+    data_json = json.dumps(data_dict, indent=4)
 
     return data_json
 
@@ -98,7 +108,12 @@ def getImagesByPosition():
 # Fornisce i dati relativi ai marker globali
 @app.route('/getGlobalMarkers', methods = ['GET'])
 def getGlobalMarker():
-    return sql.selectAllMarker()
+    data_dict = sql.selectAllMarker()
+
+    # Formatta la lista di dizionari in JSON
+    data_json = json.dumps(data_dict, indent=4)
+    
+    return data_json
 
 # Fornisce i dati relativi ai marker locali
 @app.route('/getLocalMarkers', methods = ['POST'])
@@ -106,25 +121,45 @@ def getLocalMarker():
     data = request.get_json()
     # Estrae la geometria da ciascuna feature
     geometries = [feature['geometry'] for feature in data['features']]
-    return sql.selectMarkersFromGeoJSON(geometries)
+    data_dict = sql.selectMarkersFromGeoJSON(geometries)
+
+    # Formatta la lista di dizionari in JSON
+    data_json = json.dumps(data_dict, indent=4)
+
+    return data_json
 
 #Selezione di K-Means con K fissato
 @app.route('/getKMeansFixated', methods = ['POST'])
 def getFixatedKMeans():
     data = request.get_json()
     print(data)
-    return sql.selectFixatedKMeans(data['k'])
+    data_dict = sql.selectFixatedKMeans(data['k'])
+
+    # Formatta la lista di dizionari in JSON
+    data_json = json.dumps(data_dict, indent=4)
+
+    return data_json
 
 @app.route('/getElbowKMeans', methods = ['GET'])
 def getElbowKMeans():
-    return sql.automaticElbowMethod()
+    data_dict = sql.automaticElbowMethod()
+
+    # Formatta la lista di dizionari in JSON
+    data_json = json.dumps(data_dict, indent=4)
+
+    return data_json
 
 # Crea una nuova collezione
 @app.route('/newCollection', methods = ['POST'])
 def newCollection():
     data = request.get_json()
     print(data)
-    return sql.insertCollection(data['nome'])
+    data_dict = sql.insertCollection(data['nome'])
+
+    # Formatta la lista di dizionari in JSON
+    data_json = json.dumps(data_dict, indent=4)
+
+    return data_json
 
 # Inserisce la foto nel database
 @app.route('/insertPhoto', methods = ['POST'])
@@ -146,6 +181,7 @@ def insertPhoto():
         f.write(imgdata)
 
     sql.insertImage(file_path, data['collectionId'], data['longitudine'], data['latitudine'])
+    
     return '', 204
 
 app.run(host = 'localhost', port = 8000)
