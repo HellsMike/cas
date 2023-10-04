@@ -495,30 +495,28 @@ function colorMap() {
         .then(data => {
             data.forEach(item => {
                 // Crea un nuovo marker per ogni elemento in data
-                var marker = L.marker([item.latitudine, item.longitudine])
-                    .bindPopup(item.nome_collezione)
-                    .openPopup();
-    
+                var marker = L.marker([item.latitudine, item.longitudine]);
+                marker.id = item.id;    
                 colorMarkers.push(marker); // Aggiunge il marker all'array
             });
             
             // Mostra il contenitore dei poligoni e crea la mappa dei poligoni
             geojson.features.forEach(function(feature) {
                 if (feature.geometry.type === "MultiPolygon") {
-                    var markerCount = 0; // Contatore di marker nel singolo poligono
-
+                    var idList = []; // Lista di id delle foto/marker nel singolo poligono
+                    
                     // Calcola il conteggio dei marker all'interno del poligono
                     colorMarkers.forEach(function(marker){
                         if (isMarkerInsidePolygon(marker, feature)) {
-                            markerCount++;
+                            idList.push(marker.id);
                         }
                     })
 
                     // Imposta il colore in base al conteggio dei marker
                     var fillColor = "red"; // Colore predefinito se nessun marker è presente
                     
-                    if (markerCount > 0) 
-                        fillColor = markerCount < soglia ? "yellow" : "green";
+                    if (idList.length > 0) 
+                        fillColor = idList.length < soglia ? "yellow" : "green";
                     
                     // Crea un layer con il poligono e il colore appropriato
                     var polygonLayer = L.geoJSON(feature, {
@@ -529,7 +527,31 @@ function colorMap() {
                             weight: 1, // Spessore del bordo
                         }
                     });
-
+                    if (idList.length > 0) {
+                        // Al click effettua la richiesta per ricevere l'immagine
+                        polygonLayer.on('click', function() {
+                            // Effettua la richiesta HTTP
+                            fetch(backendEndpoint + '/getImagesById', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({idList: idList}),
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                    var imageStr = '';
+                                    data.forEach(image => {
+                                        imageStr += "<img src='data:image/jpeg;base64," + image.base64image + 
+                                        "' style='max-width: 100%; min-width: 150px; height: auto; margin-top: 0; margin-bottom: 0;' />" + 
+                                        "<p style='margin-top: 0; margin-bottom: 0;'>" + image.nome_collezione + "</p>";
+                                    })
+                                    // Crea un popup con l'immagine e il testo
+                                    this.bindPopup(imageStr).openPopup();
+                                }
+                            );
+                        });
+                    }
                     polygonLayerGroup.addLayer(polygonLayer);
                 }
             });

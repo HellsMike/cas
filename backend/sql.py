@@ -81,14 +81,13 @@ def selectNCollections(longitudine, latitudine, n):
 # Ritorna una lista di marker senza filtro spaziale
 def selectAllMarker():
     query = f"""
-        SELECT i.id, ST_X(i.geom) AS longitude, ST_Y(i.geom) AS latitude, c.name AS collection_name
+        SELECT i.id, ST_X(i.geom) AS longitude, ST_Y(i.geom) AS latitude
         FROM images AS i
-        JOIN collections AS c ON i.collection_id = c.id;
         """
     results = executeQuery(query)
     
     # Converti la lista di tuple in una lista di dizionari
-    data_dict = [dict(zip(['id', 'longitudine', 'latitudine', 'nome_collezione'], item)) for item in results]
+    data_dict = [dict(zip(['id', 'longitudine', 'latitudine'], item)) for item in results]
 
     return data_dict
 
@@ -98,16 +97,15 @@ def selectMarkersFromGeoJSON(geometries):
     for geometry in geometries:
         geometry_json = json.dumps(geometry)
         query = f"""
-            SELECT ST_X(i.geom) AS longitude, ST_Y(i.geom) AS latitude, c.name AS collection_name
+            SELECT i.id, ST_X(i.geom) AS longitude, ST_Y(i.geom) AS latitude
             FROM images AS i
-            JOIN collections AS c ON i.collection_id = c.id
             WHERE ST_intersects(ST_SetSRID(i.geom, 4326), (SELECT ST_SetSRID(ST_GeomFromGeoJSON ('{geometry_json}'), 4326) AS geom));
             """
         result = executeQuery(query)
         if result:
             # Converti la lista di tuple in una lista di dizionari
             for item in result:
-                results.append(dict(zip(['longitudine', 'latitudine', 'nome_collezione'], item)))
+                results.append(dict(zip(['id', 'longitudine', 'latitudine'], item)))
 
     return results
 
@@ -169,14 +167,15 @@ def automaticElbowMethod():
 # Query per la selezione di un'immagine dato il suo id
 def selectImage(id):
     query = f"""
-        SELECT url
-        FROM images
-        WHERE images.id = '{id}'
+        SELECT url, c.name
+        FROM images as i
+        JOIN collections AS c ON i.collection_id = c.id
+        WHERE i.id = '{id}'
         """    
     results = executeQuery(query)
     
     # Converti la lista di tuple in una lista di dizionari
-    data_dict = [dict(zip(['url'], item)) for item in results]
+    data_dict = [dict(zip(['url', 'nome_collezione'], item)) for item in results]
 
     return data_dict
 
