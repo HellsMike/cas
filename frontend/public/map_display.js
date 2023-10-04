@@ -156,7 +156,6 @@ function setCollectionAutocomplete() {
             // Fa aprire il menù verso l'alto
             position: { my : "left bottom", at: "left top" },
             select: function(event, ui) {
-                console.log("ID selezionato: " + ui.item.value);
                 // Memorizza l'ID nell variabile globale
                 selectedId = ui.item.value;
                 event.preventDefault();
@@ -235,12 +234,33 @@ function isValidCoordinate(coordinate, min, max) {
     return !isNaN(value) && value >= min && value <= max;
 }
 
+// Crea una nuova collezione e aggiorna il selectedId
+async function nuovaCollezione(collezione) {
+    // Effettua la richiesta per la creazione di una nuova collezione
+    let json = {
+        nome: collezione
+    };
+
+    let response = await fetch(backendEndpoint + '/newCollection', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(json)
+    });
+
+    let data = await response.json();
+    selectedId = data[0].id;
+}
+
 // Gestisce il caricamento di file foto o cartelle
-function uploadFiles() {
+async function uploadFiles() {
     var input = document.getElementById(document.getElementById('uploadType').value === 'file' ? 'fileInput' : 'directoryInput');
     var latitude = document.getElementById('latitude').value;
     var longitude = document.getElementById('longitude').value;
-  
+    var collezione = document.getElementById('collection').value;
+
+    // Verifica se le coordinate sono in un formato valido
     if (!isValidCoordinate(latitude, -90, 90)) {
       alert('Inserisci una latitudine valida compresa tra -90 e 90.');
       return;
@@ -251,6 +271,11 @@ function uploadFiles() {
       return;
     }
   
+    // Verifica se la collezione è già esistente o è necessario crearla
+    if (collectionList.every(dict => dict.nome !== collezione)) {
+        await nuovaCollezione(collezione);
+    }
+
     for (var i = 0; i < input.files.length; i++) {
       var file = input.files[i];
       var fileType = file.type;
@@ -277,7 +302,6 @@ function uploadFiles() {
                 },
                 body: JSON.stringify(data)
             })
-            .then(response => response.json())
             .catch((error) => {
                 console.error('Error:', error);
             });
@@ -343,9 +367,29 @@ function addLocalMarkers() {
         data.forEach(item => {
             // Crea un nuovo marker per ogni elemento in data
             var marker = L.marker([item.latitudine, item.longitudine])
-                .bindPopup(item.nome_collezione)
-                .openPopup();
-
+           // Al click effettua la richiesta per ricevere l'immagine
+            marker.on('click', function() {
+                // Effettua la richiesta HTTP
+                fetch(backendEndpoint + '/getImagesByPosition', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({longitudine: item.longitudine, latitudine: item.latitudine}),
+                })
+                .then(response => response.json())
+                .then(data => {
+                        var markerString = '';
+                        data.forEach(image => {
+                            markerString += "<img src='data:image/jpeg;base64," + image.base64image + 
+                            "' style='max-width: 100%; min-width: 150px; height: auto; margin-top: 0; margin-bottom: 0;' />" + 
+                            "<p style='margin-top: 0; margin-bottom: 0;'>" + image.nome_collezione + "</p>";
+                        })
+                        // Crea un popup con l'immagine e il testo
+                        this.bindPopup(markerString).openPopup();
+                    }
+                );
+            });
             markers.push(marker); // Aggiungi il marker all'array
         });
 
