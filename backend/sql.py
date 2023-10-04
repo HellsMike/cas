@@ -153,8 +153,7 @@ def automaticElbowMethod():
     
     # Esegue K-Means per diversi valori di k e calcola l'inerzia
     for k in range(1, max_k + 1):
-        data_json = selectFixatedKMeans(k)
-        clusters = json.loads(data_json)
+        clusters = selectFixatedKMeans(k)
         # Calcola l'inerzia sommando le distanze quadrate delle immagini dai rispettivi centroidi
         inertia = sum([cluster['size'] * cluster['longitudine']**2 + cluster['latitudine']**2 for cluster in clusters])
         inertia_values.append(inertia)
