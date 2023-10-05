@@ -21,7 +21,7 @@ var markerLayer; // Layer per i marker
 
 var heatmapLayer = L.heatLayer();
 
-var soglia = 2; // Soglia per il cambio colorazione da giallo a verde nella colorazione a poligoni
+var soglia = 1; // Soglia per il cambio colorazione da giallo a verde nella colorazione a poligoni
 
 var collectionList = []; // Lista collezioni esistenti
 
@@ -515,8 +515,20 @@ function colorMap() {
                     // Imposta il colore in base al conteggio dei marker
                     var fillColor = "red"; // Colore predefinito se nessun marker è presente
                     
-                    if (idList.length > 0) 
-                        fillColor = idList.length < soglia ? "yellow" : "green";
+                    switch (true) {
+                        case idList.length > soglia*3:
+                            fillColor = "green"; // Sostituisci "color2" con il colore desiderato per questa condizione
+                            break;
+                        case idList.length > soglia*2:
+                            fillColor = "yellow"; // Sostituisci "color3" con il colore desiderato per questa condizione
+                            break;
+                        case idList.length > soglia:
+                            fillColor = "orange"; // Sostituisci "color4" con il colore desiderato per questa condizione
+                            break;
+                        default:
+                            fillColor = "red"; // Sostituisci "color5" con il colore desiderato per questa condizione
+                            break;
+                    }
                     
                     // Crea un layer con il poligono e il colore appropriato
                     var polygonLayer = L.geoJSON(feature, {
