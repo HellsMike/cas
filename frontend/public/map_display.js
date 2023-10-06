@@ -226,7 +226,7 @@ function handleGeoJsonSelect(event) {
                     markers = []
 
                 geojson.features.forEach(function(feature) {
-                    if (feature.geometry.type === "MultiPolygon") {
+                    if (feature.geometry.type === "MultiPolygon" || "Polygon") {
                         // Crea un layer con il poligono e il bordo senza colore
                         var polygonLayerBorder = L.geoJSON(feature, {
                             style: {
@@ -495,9 +495,7 @@ function addCollectionMarker() {
         mainMap.removeLayer(markerLayer)
         markers = []
     }
-
-    var collezione = document.getElementById("collection_text_marker").value;
-    
+   
     // Se il numero di cluster è stato dato in input esegue il kmeans con k altrimenti utilizza l'elbow method
     if (selectedIdForMarker > 0) {
         fetch(backendEndpoint + '/getImagesByCollectionId', {
@@ -592,7 +590,7 @@ function colorMap() {
             
             // Mostra il contenitore dei poligoni e crea la mappa dei poligoni
             geojson.features.forEach(function(feature) {
-                if (feature.geometry.type === "MultiPolygon") {
+                if (feature.geometry.type === "MultiPolygon" || "Polygon") {
                     var idList = []; // Lista di id delle foto/marker nel singolo poligono
                     
                     // Calcola il conteggio dei marker all'interno del poligono
