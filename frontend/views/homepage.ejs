@@ -67,9 +67,14 @@
                 <label for="local_marker">Mostra marker all'interno dei confini del GEOJSON</label><br>
                 <input type="radio" id="cluster_marker" name="marker" value="cluster">
                 <label for="cluster_marker">Mostra i centroidi dei cluster ottenuti con K-means</label><br>
-                <label for="n_cluster">Numero cluster:</label>
+                <label for="n_cluster">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Numero cluster:</label>
                 <input type="number" id="n_cluster" name="n_cluster" placeholder="Vuoto per k automatico" min="1" step="1" disabled>
-                <button type="button" id="cluster_submit" onclick="addClusterMarkers()" disabled>Esegui</button>
+                <button type="button" id="cluster_submit" onclick="addClusterMarkers()" disabled>Esegui</button><br>
+                <input type="radio" id="collection_marker" name="marker" value="collection">
+                <label for="collection_marker">Mostra i marker di una collezione</label><br>
+                <label for="selected_collection_marker">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Collezione:</label>
+                <input type="text" id="collection_text_marker" name="collection_text_marker" disabled>
+                <button type="button" id="collection_submit" onclick="addCollectionMarker()" disabled>Esegui</button>
             </form>
         </div>
         <div class="box">

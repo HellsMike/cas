@@ -179,6 +179,51 @@ def selectImage(id):
 
     return data_dict
 
+# Query spaziale pper le immagini sul punto fornito
+def selectImagesByPosition(longitudine, latitudine):
+    query = f"""
+        SELECT url, c.name
+        FROM images AS i
+        JOIN collections AS c ON i.collection_id = c.id
+        WHERE ST_X(i.geom) = {longitudine} AND ST_Y(i.geom) = {latitudine}
+        """
+    results = executeQuery(query)
+
+    # Converti la lista di tuple in una lista di dizionari
+    data_dict = [dict(zip(['url', 'nome_collezione'], item)) for item in results]
+
+    return data_dict
+
+# Query spaziale pper le immagini sul punto fornito
+def selectImagesByPositionAndCollection(longitudine, latitudine, collection_id):
+    query = f"""
+        SELECT url
+        FROM images AS i
+        JOIN collections AS c ON i.collection_id = c.id
+        WHERE ST_X(i.geom) = {longitudine} AND ST_Y(i.geom) = {latitudine} AND c.id = {collection_id}
+        """
+    results = executeQuery(query)
+
+    # Converti la lista di tuple in una lista di dizionari
+    data_dict = [dict(zip(['url'], item)) for item in results]
+
+    return data_dict
+
+# Query spaziale delle immagini di una collezione
+def selectImagesByCollectionId(id):
+    query = f"""
+        SELECT i.id, ST_X(i.geom) AS longitudine, ST_Y(i.geom) AS latitudine
+        FROM images AS i
+        JOIN collections AS c ON i.collection_id = c.id
+        WHERE c.id = {id}
+        """
+    results = executeQuery(query)
+    
+    # Converti la lista di tuple in una lista di dizionari
+    data_dict = [dict(zip(['id', 'longitudine', 'latitudine'], item)) for item in results]
+
+    return data_dict
+
 # Query spaziale delle n immagini più vicine
 def selectNImages(longitudine, latitudine, n):
     query = f"""
@@ -193,21 +238,6 @@ def selectNImages(longitudine, latitudine, n):
     
     # Converti la lista di tuple in una lista di dizionari
     data_dict = [dict(zip(['id', 'longitudine', 'latitudine', 'nome_collezione', 'distanza'], item)) for item in results]
-
-    return data_dict
-
-# Query spaziale pper le immagini sul punto fornito
-def selectImagesByPosition(longitudine, latitudine):
-    query = f"""
-        SELECT url, c.name
-        FROM images AS i
-        JOIN collections AS c ON i.collection_id = c.id
-        WHERE ST_X(i.geom) = {longitudine} AND ST_Y(i.geom) = {latitudine}
-        """
-    results = executeQuery(query)
-
-    # Converti la lista di tuple in una lista di dizionari
-    data_dict = [dict(zip(['url', 'nome_collezione'], item)) for item in results]
 
     return data_dict
 

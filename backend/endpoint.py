@@ -45,6 +45,18 @@ def getImages():
 
     return data_json
 
+# Fornisce le immagini di una data collezione
+@app.route('/getImagesByCollectionId', methods = ['POST'])
+def getImagesByCollectionId():
+    data = request.get_json()
+    print(data)
+    data_dict = sql.selectImagesByCollectionId(data['id'])
+    
+    # Formatta la lista di dizionari in JSON
+    data_json = json.dumps(data_dict, indent=4)
+
+    return data_json
+
 # Fornisce le immagini con la lista di id fornita
 @app.route('/getImagesById', methods = ['POST'])
 def getImagesById():
@@ -114,7 +126,10 @@ def getImageById():
 def getImagesByPosition():
     data = request.get_json()
     print(data)
-    images = sql.selectImagesByPosition(data['longitudine'], data['latitudine'])
+    if 'collection_id' in data:
+        images = sql.selectImagesByPositionAndCollection(data['longitudine'], data['latitudine'], data['collection_id'])
+    else:    
+        images = sql.selectImagesByPosition(data['longitudine'], data['latitudine'])
 
     for image in images:
         # Legge i dati dell'immagine dal file

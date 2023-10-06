@@ -25,7 +25,9 @@ var soglia = 2; // Soglia per il cambio colorazione da giallo a verde nella colo
 
 var collectionList = []; // Lista collezioni esistenti
 
-var selectedId; // Id della collezione selezionata per il caricamentoo di file
+var selectedId; // Id della collezione selezionata per il caricamento di file
+
+var selectedIdForMarker; // Id della collezione selezionata per la visualizzazioone dei marker
 
 setCollectionAutocomplete(); 
 
@@ -41,6 +43,8 @@ for (var i = 0; i < markerRadios.length; i++) {
                     // Rimuove eventuali marker presenti
                     mainMap.removeLayer(markerLayer)
                     markers = []
+                    document.getElementById('collection_text_marker').disabled = true; 
+                    document.getElementById('collection_submit').disabled = true;
                     document.getElementById('n_cluster').disabled = true;
                     document.getElementById('cluster_submit').disabled = true;
 
@@ -51,6 +55,8 @@ for (var i = 0; i < markerRadios.length; i++) {
                         mainMap.removeLayer(markerLayer)
                         markers = []
 
+                    document.getElementById('collection_text_marker').disabled = true; 
+                    document.getElementById('collection_submit').disabled = true;
                     document.getElementById('n_cluster').disabled = true;
                     document.getElementById('cluster_submit').disabled = true;
                     addGlobalMarkers();
@@ -62,6 +68,8 @@ for (var i = 0; i < markerRadios.length; i++) {
                         mainMap.removeLayer(markerLayer)
                         markers = []
 
+                    document.getElementById('collection_text_marker').disabled = true; 
+                    document.getElementById('collection_submit').disabled = true;
                     document.getElementById('n_cluster').disabled = true;
                     document.getElementById('cluster_submit').disabled = true;
                     addLocalMarkers();
@@ -69,8 +77,19 @@ for (var i = 0; i < markerRadios.length; i++) {
                     break;
                 case 'cluster':
                     // Aggiunge i marker dei centroidi
+                    document.getElementById('collection_text_marker').disabled = true; 
+                    document.getElementById('collection_submit').disabled = true;
                     document.getElementById('n_cluster').disabled = false; 
                     document.getElementById('cluster_submit').disabled = false;
+                    // L'aggiunta dei marker è gestita dalla funzione chiamata dal bottone
+
+                    break;
+                case 'collection':
+                    // Aggiunge i marker di una data collezioone
+                    document.getElementById('n_cluster').disabled = true;
+                    document.getElementById('cluster_submit').disabled = true;
+                    document.getElementById('collection_text_marker').disabled = false; 
+                    document.getElementById('collection_submit').disabled = false;
                     // L'aggiunta dei marker è gestita dalla funzione chiamata dal bottone
 
                     break;
@@ -158,6 +177,18 @@ function setCollectionAutocomplete() {
             select: function(event, ui) {
                 // Memorizza l'ID nell variabile globale
                 selectedId = ui.item.value;
+                event.preventDefault();
+                // Imposta il campo di input sul nome dell'elemento selezionato
+                $(this).val(ui.item.label);
+            }
+        });  
+        $( "#collection_text_marker" ).autocomplete({
+            source: collectionList.map(item => ({label: item.nome, value: item.id})),
+            // Fa aprire il menù verso l'alto
+            position: { my : "left bottom", at: "left top" },
+            select: function(event, ui) {
+                // Memorizza l'ID nell variabile globale
+                selectedIdForMarker = ui.item.value;
                 event.preventDefault();
                 // Imposta il campo di input sul nome dell'elemento selezionato
                 $(this).val(ui.item.label);
@@ -455,6 +486,65 @@ function addClusterMarkers() {
             markerLayer.addTo(mainMap);   
         })
         .catch(error => console.error('Error:', error));
+    }
+}
+
+// Aggiunge i marker della collezione selezionata
+function addCollectionMarker() {
+    if (mainMap.hasLayer(markerLayer)) {
+        mainMap.removeLayer(markerLayer)
+        markers = []
+    }
+
+    var collezione = document.getElementById("collection_text_marker").value;
+    
+    // Se il numero di cluster è stato dato in input esegue il kmeans con k altrimenti utilizza l'elbow method
+    if (selectedIdForMarker > 0) {
+        fetch(backendEndpoint + '/getImagesByCollectionId', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ id: selectedIdForMarker }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            data.forEach(item => {
+                // Crea un nuovo marker per ogni elemento in data
+                var marker = L.marker([item.latitudine, item.longitudine])
+                // Al click effettua la richiesta per ricevere l'immagine
+                marker.on('click', function() {
+                    // Effettua la richiesta HTTP
+                    fetch(backendEndpoint + '/getImagesByPosition', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({longitudine: item.longitudine, latitudine: item.latitudine, collectionID: selectedIdForMarker}),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                            var markerString = '';
+                            data.forEach(image => {
+                                markerString += "<img src='data:image/jpeg;base64," + image.base64image + 
+                                "' style='max-width: 100%; min-width: 150px; height: auto; margin-top: 0; margin-bottom: 0;' />";
+                            })
+                            // Crea un popup con l'immagine e il testo
+                            this.bindPopup(markerString).openPopup();
+                        }
+                    );
+                });
+                markers.push(marker); // Aggiungi il marker all'array
+            });
+    
+            // Aggiungi i marker alla mappa principale
+            markerLayer = L.layerGroup(markers);
+            markerLayer.addTo(mainMap);  
+        })
+        .catch(error => console.error('Error:', error));
+    } else {
+        alert('Inserisci una collezione valida.');
+        return;
     }
 }
 
