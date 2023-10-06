@@ -207,6 +207,13 @@ function handleGeoJsonSelect(event) {
         reader.onload = function(e) {
             geojson = JSON.parse(e.target.result);
 
+            // Se è una feature singola, la tratta come feature collection di un elemento
+            if (geojson.type === "Feature") {
+                geojson = {
+                    "type": "FeatureCollection",
+                    "features": [geojson]
+                }
+            }
             if (geojson.type === "FeatureCollection" && geojson.features) {
                 // Rimuove eventuali bordi e colorazioni legati ad altri geojson
                 if (mainMap.hasLayer(polygonLayerGroup))
