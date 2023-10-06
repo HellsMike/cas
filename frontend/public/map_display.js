@@ -611,17 +611,16 @@ function colorMap() {
                     var fillColor = "red"; // Colore predefinito se nessun marker è presente
                     
                     switch (true) {
+                        case idList.length == 0:
+                            break;
                         case idList.length > soglia*3:
-                            fillColor = "green"; // Sostituisci "color2" con il colore desiderato per questa condizione
+                            fillColor = "green"; 
                             break;
                         case idList.length > soglia*2:
-                            fillColor = "yellow"; // Sostituisci "color3" con il colore desiderato per questa condizione
-                            break;
-                        case idList.length > soglia:
-                            fillColor = "orange"; // Sostituisci "color4" con il colore desiderato per questa condizione
+                            fillColor = "yellow"; 
                             break;
                         default:
-                            fillColor = "red"; // Sostituisci "color5" con il colore desiderato per questa condizione
+                            fillColor = "orange"; 
                             break;
                     }
                     
