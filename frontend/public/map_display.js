@@ -31,6 +31,8 @@ var selectedIdForMarker; // Id della collezione selezionata per la visualizzazio
 
 setCollectionAutocomplete(); 
 
+mainMap.on('click', onMapClick); // Aggiunge l'evento click alla mappa per ottenere le coordinate cliccate
+
 // Controlla l'opzione selezionata per i marker
 var markerRadios = document.querySelectorAll('input[type=radio][name="marker"]');
 
@@ -161,6 +163,17 @@ for (var i = 0; i < colorRadios.length; i++) {
             }
         }
     });
+}
+
+// Funzione per gestire il click sulla mappa
+function onMapClick(e) {
+    // Ottiene le coordinate del punto cliccato
+    var lat = e.latlng.lat;
+    var lng = e.latlng.lng;
+
+    // Imposta i valori delle coordinate nelle caselle di testo
+    document.getElementById('latitude').value = lat;
+    document.getElementById('longitude').value = lng;
 }
 
 // Ottiene le collezioni esistenti e le imposta nell'autocomplete
