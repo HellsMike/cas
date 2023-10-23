@@ -17,13 +17,57 @@ spec:
       - name: POSTGRES_DB
         value: cas
   - name: frontend
-    image: nome_utente/nome_immagine_frontend:cas
+    image: mrpotrol/frontend:cas
     ports:
     - containerPort: 8001
   - name: backend
-    image: nome_utente/nome_immagine_backend:cas
+    image: mrpotrol/backend:cas
     ports:
     - containerPort: 8000
+---
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: frontend-deployment
+    labels:
+      app: frontend
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app: frontend
+    template:
+      metadata:
+        labels:
+          app: frontend
+      spec:
+        containers:
+        - name: frontend
+          image: mrpotrol/frontend:cas
+          ports:
+          - containerPort: 8001
+---
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: backend-deployment
+    labels:
+      app: backend
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app: backend
+    template:
+      metadata:
+        labels:
+          app: backend
+      spec:
+        containers:
+        - name: backend
+          image: mrpotrol/backend:cas
+          ports:
+          - containerPort: 8001
 ---
 apiVersion: v1
 kind: Service
