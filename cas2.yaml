@@ -29,7 +29,7 @@ spec:
     spec: 
       containers:
         - name: backend
-          image: mrpotrol/backend:cas
+          image: mrpotrol/backendend:cas
           ports: 
           - containerPort: 8000
 ---
