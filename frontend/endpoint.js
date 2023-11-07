@@ -6,10 +6,10 @@ const app = express();
 
 // Imposta il percorso alla cartella delle views
 const __dirname = path.resolve();
-app.set('views', path.join(__dirname, '/frontend/views'));
+app.set('views', path.join(__dirname, '/views'));
 
 // Imposta la cartella per gli script
-app.use(express.static(path.join(__dirname, '/frontend/public')));
+app.use(express.static(path.join(__dirname, '/public')));
 
 // Imposta il motore di template EJS
 app.set('view engine', 'ejs');

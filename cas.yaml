@@ -1,0 +1,192 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+spec:
+  selector: 
+    app: backend
+  ports:
+    - protocol: 'TCP'
+      port: 8000
+      targetPort: 8000
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: backend-persisent-volume
+  labels:
+    type: local
+spec:
+  claimRef:
+    namespace: default
+    name: backend-persisent-volume-claim
+  storageClassName: manual
+  capacity:
+    storage: 3Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/Users/akirapetrolini/Desktop/volume2" #NB Change this to where you want to store it
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backend-persisent-volume-claim
+spec:
+  volumeName: backend-persisent-volume
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 3Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  labels: 
+    app: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata: 
+      labels:
+        app: backend
+    spec: 
+      containers:
+        - name: backend
+          image: mrpotrol/backendend:cas
+          ports: 
+          - containerPort: 8000
+          volumeMounts:
+            - mountPath: "/app/backend/images"
+              name: backend-storage
+      volumes:
+        - name: backend-storage
+          persistentVolumeClaim:
+            claimName: backend-persisent-volume-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+spec:
+  selector: 
+    app: frontend
+  ports:
+    - protocol: 'TCP'
+      port: 8001
+      targetPort: 8001
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  labels: 
+    app: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata: 
+      labels:
+        app: frontend
+    spec: 
+      containers:
+        - name: frontend
+          image: mrpotrol/frontend:cas
+          ports: 
+          - containerPort: 8001
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: database-service
+spec:
+  selector: 
+    app: database
+  ports:
+    - protocol: 'TCP'
+      port: 5432
+      targetPort: 5432
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: database-persisent-volume
+  labels:
+    type: local
+spec:
+  claimRef:
+    namespace: default
+    name: database-persisent-volume-claim
+  storageClassName: manual
+  capacity:
+    storage: 3Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/Users/akirapetrolini/Desktop/volume" #NB Change this to where you want to store it
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: database-persisent-volume-claim
+spec:
+  volumeName: database-persisent-volume
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 3Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database-deployment
+  labels: 
+    app: database
+spec:
+  selector:
+    matchLabels:
+      app: database
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      containers:
+        - name: database
+          image: postgis/postgis
+          ports:
+            - containerPort: 5432
+              name: "postgres"
+          volumeMounts:
+            - mountPath: "/var/lib/postgresql/data"
+              name: database-storage
+          env:
+            - name: POSTGRES_DB
+              value: cas
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: docker
+          resources:
+            limits:
+              memory: 2Gi
+              cpu: "2"
+      volumes:
+        - name: database-storage
+          persistentVolumeClaim:
+            claimName: database-persisent-volume-claim

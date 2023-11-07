@@ -10,9 +10,10 @@ def executeQuery(query):
         dbname="cas",
         user="postgres",
         password="docker",
-        host="localhost",
-        port="5432"
+        host="database-service", # questo è il nome del servizio
+        port="5432" # questa è la porta del database
     )
+
     
     # Esecuzione delle query 
     with conn.cursor() as cur:
