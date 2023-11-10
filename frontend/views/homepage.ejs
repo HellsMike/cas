@@ -33,7 +33,7 @@
     <div id="map" style="width: 100%; height: 70%;"></div>
     <div class="container">
         <div class="box">
-            <h3>Carica immagini</h3>
+            <h3>Carica Immagini</h3>
             <form id="uploadForm">
                 <input type="file" id="fileInput" multiple accept="image/*" />
                 <input type="file" id="directoryInput" webkitdirectory directory accept="image/*" style="display: none;" />
@@ -53,7 +53,7 @@
             </form>
         </div>
         <div class="box">            
-            <h3>Carica GEOJSON</h3>
+            <h3>Carica GeoJSON</h3>
             <input type="file" id="geojsonFile" accept=".geojson" onchange="handleGeoJsonSelect(event)">
         </div>
         <div class="box">
@@ -64,9 +64,9 @@
                 <input type="radio" id="global_marker" name="marker" value="global">
                 <label for="global_marker">Mostra marker in tutto il mondo</label><br>
                 <input type="radio" id="local_marker" name="marker" value="local" disabled>
-                <label for="local_marker">Mostra marker all'interno dei confini del GEOJSON</label><br>
+                <label for="local_marker">Mostra marker all'interno dei confini del GeoJSON</label><br>
                 <input type="radio" id="cluster_marker" name="marker" value="cluster">
-                <label for="cluster_marker">Mostra i centroidi dei cluster ottenuti con K-means</label><br>
+                <label for="cluster_marker">Mostra i centroidi dei cluster ottenuti con KMeans</label><br>
                 <label for="n_cluster">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Numero cluster:</label>
                 <input type="number" id="n_cluster" name="n_cluster" placeholder="Vuoto per k automatico" min="1" step="1" disabled>
                 <button type="button" id="cluster_submit" onclick="addClusterMarkers()" disabled>Esegui</button><br>
@@ -83,7 +83,7 @@
                 <input type="radio" id="no_color" name="color" value="none" checked>
                 <label for="no_color">Nessuna colorazione</label><br>
                 <input type="radio" id="local_color" name="color" value="local" disabled>
-                <label for="local_color">Mostra la colorazione all'interno dei confini del GEOJSON</label><br>
+                <label for="local_color">Mostra la colorazione all'interno dei confini del GeoJSON</label><br>
                 <input type="radio" id="global_heatmap" name="color" value="global_heatmap">
                 <label for="global_heatmap">Mostra la heatmap globale</label><br>
             </form>
