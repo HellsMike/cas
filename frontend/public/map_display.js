@@ -149,17 +149,6 @@ for (var i = 0; i < colorRadios.length; i++) {
                     colorGlobalHeatmap();
 
                     break;
-                case 'local_heatmap':
-                    // Aggiunge la heatmap all'interno del GEOJSON
-                    if (mainMap.hasLayer(polygonLayerGroup))
-                        mainMap.removeLayer(polygonLayerGroup)
-
-                    if (mainMap.hasLayer(polygonLayerBorderGroup))
-                        mainMap.removeLayer(polygonLayerBorderGroup)
-
-                    polygonLayerGroup = L.layerGroup();
-
-                    break;
             }
         }
     });
@@ -267,7 +256,6 @@ function handleGeoJsonSelect(event) {
                 // Rende cliccabili i radio button legati ai filtri spaziali
                 document.getElementById('local_marker').disabled = false;   
                 document.getElementById('local_color').disabled = false;
-                document.getElementById('local_heatmap').disabled = false;
             } else {
                 console.error("Il file GeoJSON non contiene un MultiPolygon.");
             }
