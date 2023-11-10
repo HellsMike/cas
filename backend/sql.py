@@ -154,7 +154,7 @@ def automaticElbowMethod():
     for k in range(1, max_k + 1):
         clusters = selectFixatedKMeans(k)
         # Calcola l'inerzia sommando le distanze quadrate delle immagini dai rispettivi centroidi
-        inertia = sum([cluster['size'] * cluster['longitudine']**2 + cluster['latitudine']**2 for cluster in clusters])
+        inertia = sum([cluster['size'] * (cluster['longitudine']**2 + cluster['latitudine']**2) for cluster in clusters])
         inertia_values.append(inertia)
     
     # Calcola la derivata seconda dell'inerzia
